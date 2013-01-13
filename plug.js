@@ -49,12 +49,19 @@ window.RuB = new (function() {
     return onDeck;
   }
 
+  /**
+   * Checks if the user is authorized to perform commands
+   */
+  function authorizedUser(id) {
+    return includes(authorizedUsers, id) !== false;
+  }
+
   var me = API.getSelf(),
       currentDJ = null,
       currentSongThumbed = null,
       errorLog = [],
       adminID = "50aeb41fc3b97a2cb4c321b1",
-      authorizedUsers = JSON.parse(localStorage.getItem("authorizedUsers")) || [adminID],
+      authorizedUsers = [],
       options = {
         commandChar     : /^!/,
         showHeartbeat   : false
@@ -81,20 +88,28 @@ window.RuB = new (function() {
          */
          dumpErrors : function(user) {
           if(ensureAdmin(user)) {
-            API.sendChat(errorLog.join("\n"));
-            errorLog = [];
+            if(errorLog.length) {
+              API.sendChat("It's about to get spammy in here.");
+              setTimeout(function() {
+                API.sendChat("Error log:");
+                $.each(errorLog, function(error) {
+                  API.sendChat(error);
+                });
+              }, 2000);
+            } else {
+              API.sendChat("No errors reported, boss.");
+            }
           }
          },
         /**
          * Provides a user with access to RuB's functions
          */
-        authorizeUser : function(user, name) {
+        authorizeUser : function(user, name, silent) {
           if(ensureAdmin(user)) {
             var newUser = findUserByName(name);
             if(newUser) {
               if(includes(authorizedUsers, newUser.id) === false) {
                 authorizedUsers.push(newUser.id);
-                saveAuthorizedUsers();
                 API.sendChat(name+" is now an authorized user.");
               } else {
                 API.sendChat(name+" is already an authorized user.");
@@ -112,7 +127,6 @@ window.RuB = new (function() {
               var ind = includes(authorizedUsers, oldUser.id);
               if(ind !== false) {
                 authorizedUsers.splice(ind, 1);
-                saveAuthorizedUsers();
                 API.sendChat("Deauthorized "+oldUser.username);
               } else {
                 API.sendChat(name+" is not an authorized user.");
@@ -222,61 +236,11 @@ window.RuB = new (function() {
 
   $.extend(commands, aliases);
 
-  /**
-   * Checks if the user is authorized to perform commands
-   */
-  function authorizedUser(id) {
-    return includes(authorizedUsers, id) !== false;
-  }
-
-  /**
-   *
-   */
-  function saveAuthorizedUsers() {
-    localStorage.removeItem("authorizedUsers");
-    localStorage.setItem("authorizedUsers", options.authorizedUsers);
-  }
-
-  API.addEventListener(API.CHAT, function(data) {
-    if(data.type == "message") {
-      if(data.message.match(options.commandChar)) {
-        if(authorizedUser(data.fromID)) {
-          var params = data.message.replace(options.commandChar, "").split(" "),
-              com = params.shift();
-
-          params.unshift(API.getUser(data.fromID));
-          try {
-            if(typeof(commands[com]) == "undefined") {
-              API.sendChat("Er... what?  Try !help");
-            } else {
-              commands[com].apply(RuB, params);
-            }
-          } catch(e) {
-            var error = e.name + ": "+e.message;
-            console.log(error);
-            console.log(e.stack);
-            errorLog.push(error);
-            API.sendChat("Well, that didn't work...");
-          }
-        }
-      }
-    }
-  });
-
-  API.addEventListener(API.DJ_ADVANCE, function(data) {
-    currentSongThumbed = null;
-    currentDJ = data.dj;
-    if(currentDJ.permission > 0 && currentDJ.id != me.id) {
-      //autowoot
-      commands.woot(me, true);
-    }
-  });
-
   this.heartbeat = function() {
     if(options.showHeartbeat) {
       API.sendChat("*badum*");
     }
-  }
+  };
 
   this.nowPlaying = function() {
     var media = API.getMedia(),
@@ -285,15 +249,52 @@ window.RuB = new (function() {
     $.each(curTime, function(piece, ind) {
       media.timeLeft += parseInt(piece) * ((curTime.length-1-ind)*60);
     });
-    return JSON.stringify(media);
-  }
-
-  API.sendChat("DJ-RuB is in the house!");
-
-  window.onbeforeunload = function() {
-    commands.stopPlaying(me);
-    API.sendChat("DJ-RuB signing off!");
-    return;
+    return media;
   };
+  
+  this.setAuthorizedUsers = function(users) {
+    authorizedUsers = users;
+    saveAuthorizedUsers();
+  };
+  
+  this.getAuthorizedUsers = function() {
+    return authorizedUsers;
+  };
+  
+  $(function() {
+    API.addEventListener(API.CHAT, function(data) {
+      if(data.type == "message") {
+        if(data.message.match(options.commandChar)) {
+          if(authorizedUser(data.fromID)) {
+            var params = data.message.replace(options.commandChar, "").split(" "),
+                com = params.shift();
 
+            params.unshift(API.getUser(data.fromID));
+            try {
+              if(typeof(commands[com]) == "undefined") {
+                API.sendChat("Er... what?  Try !help");
+              } else {
+                commands[com].apply(RuB, params);
+              }
+            } catch(e) {
+              errorLog.push(e.name + ": "+e.message);
+              API.sendChat("Well, that didn't work...");
+            }
+          }
+        }
+      }
+    });
+
+    API.addEventListener(API.DJ_ADVANCE, function(data) {
+      currentSongThumbed = null;
+      currentDJ = data.dj;
+      if(currentDJ.permission > 0 && currentDJ.id != me.id) {
+        //autowoot
+        commands.woot(me, true);
+      }
+      Playback.stop
+      
+    API.sendChat("DJ-RuB is in the house!");
+    Playback.stop();
+  });
 })();

@@ -1,12 +1,11 @@
 require 'rubygems'
-require 'pg'
 require 'watir-webdriver'
 require 'headless'
 require 'yaml'
 
 @running = false
 @options = YAML.load_file(File.join(Dir.pwd, "secrets.yml"))
-js_file = File.open(File.join(Dir.pwd, "plug.js"))
+js_file = File.open(File.join(Dir.pwd, "store", "plug.js"))
 @js = js_file.read
 js_file.close
 js_file = nil
@@ -24,8 +23,9 @@ def setup
     @browser.goto 'http://plug.dj/fractionradio/'
   end
   begin
-    @browser.execute_script(@js)
+    @browser.execute_script @js
     @js_loaded = true
+    @browser.execute_script "RuB.setAuthorizedUsers(#{@options.users.to_json})"
   rescue Selenium::WebDriver::Error::JavascriptError => e
     p e
   end
@@ -33,24 +33,16 @@ def setup
   p "setup complete!"
 end
 
-def saveSongInfo(song)
+def save_song_info(song)
   p song
-#  @db_con ||= PG::Connection.new
-#  socket = IO.for_fd(@db_con.socket)
-#  status = conn.connect_poll
-#  #wait for connection to be ready
-#  while status != PG::PGRES_POLLING_OK do
-#    if(status == PG::PGRES_POLLING_READING)
-#      unless select([socket], [], [], 10.0)
-#        return
-#      end
-#    elsif(status == PG::PGRES_POLLING_WRITING)
-#      unless select([], [socket], [], 10.0)
-#        return
-#      end
-#    end
-#    status = conn.connect_poll
-#  end
+  File.open(File.join(Dir.pwd, "store", "song.yml"), "w+") { |f| f.write(song.to_yaml) }
+end
+
+def save_authorized_users users
+  if @options.users.sort != users.sort
+    @options.users = users
+    File.open(File.join(Dir.pwd, "store", "secrets.yml"), "w+") { |f| f.write(@options.to_yaml) }
+  end
 end
 
 Headless.ly do
@@ -74,7 +66,8 @@ Headless.ly do
       p "*badum*  Browser operational."
       if @js_loaded
         @browser.execute_script("RuB.heartbeat();")
-        saveSongInfo @browser.execute_script("return RuB.nowPlaying();")
+        save_song_info @browser.execute_script("return RuB.nowPlaying();")
+        save_authorized_users @browser.execute_script("return RuB.getAuthorizedUsers();")
       end
       @running = true
     end
