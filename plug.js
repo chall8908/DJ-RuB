@@ -17,7 +17,7 @@ window.RuB = new (function() {
     return admin;
   }
 
-  function findUserByName(name) {
+  function findUserByName(name) {    
     var users = API.getUsers(),
         user  = false;
 
@@ -28,7 +28,7 @@ window.RuB = new (function() {
       }
     });
 
-    if(!user) {
+    if(!user && name) {
       API.sendChat("I don't know who that is.");
     }
 
@@ -39,7 +39,7 @@ window.RuB = new (function() {
     var DJs = API.getDJs(),
         onDeck = false;
 
-    $.each(DJs, function(dj) {
+    $.each(DJs, function(i, dj) {
       if(dj.id == user.id) {
         onDeck = true;
         return false;
@@ -91,7 +91,7 @@ window.RuB = new (function() {
               API.sendChat("It's about to get spammy in here.");
               setTimeout(function() {
                 API.sendChat("Error log:");
-                $.each(errorLog, function(error) {
+                $.each(errorLog, function(i, error) {
                   API.sendChat(error);
                 });
               }, 2000);
@@ -296,7 +296,7 @@ window.RuB = new (function() {
       //autowoot
       commands.woot(me, true);
     }
-    Playback.stop
+    Playback.stop();
   });
   
   API.sendChat("DJ-RuB is in the house!");
