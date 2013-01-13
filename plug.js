@@ -114,6 +114,11 @@ window.RuB = new (function() {
          */
         authorizeUser : function(user, name) {
           if(ensureAdmin(user)) {
+            var args = Array.prototype.slice.call(arguments);
+            if(args.length > 2) { //the new user's name may have a space in it
+              args.shift();
+              name = $.trim(args.join(" "));
+            }
             var newUser = findUserByName(name);
             if(newUser) {
               if(includes(authorizedUsers, newUser.id) === false) {
@@ -130,6 +135,11 @@ window.RuB = new (function() {
          */
         deauthorizeUser : function(user, name) {
           if(ensureAdmin(user)) {
+            var args = Array.prototype.slice.call(arguments);
+            if(args.length > 2) { //the old user's name may have a space in it
+              args.shift();
+              name = $.trim(args.join(" "));
+            }
             var oldUser = findUserByName(name);
             if(oldUser) {
               var ind = includes(authorizedUsers, oldUser.id);
@@ -310,6 +320,22 @@ window.RuB = new (function() {
       commands.woot(me, true);
     }
     Playback.stop();
+  });
+  
+  API.addEventListener(API.USER_JOIN, function(user) {
+    if(user.username.match(/^User-/)) {
+      API.sendChat("Hello, @"+user.username+".  You might want to change your name.  Default names are uncool.");
+    } else {
+      API.sendChat("Welcome to Fraction Radio, @"+user.username+".");
+    }
+  });
+  
+  API.addEventListener(API.USER_LEAVE, function(user) {
+    if(user.username.match(/^User-/)) {
+      API.sendChat("Some random left.  Good riddance.");
+    } else {
+      API.sendChat("Laters, @"+user.username+"!");
+    }
   });
   
   API.sendChat("DJ-RuB is in the house!");
