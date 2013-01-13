@@ -4,8 +4,8 @@ require 'headless'
 require 'yaml'
 
 @running = false
-@options = YAML.load_file(File.join(Dir.pwd, "secrets.yml"))
-js_file = File.open(File.join(Dir.pwd, "store", "plug.js"))
+@options = YAML.load_file(File.join(Dir.pwd, "store", "secrets.yml"))
+js_file = File.open(File.join(Dir.pwd, "plug.js"))
 @js = js_file.read
 js_file.close
 js_file = nil
