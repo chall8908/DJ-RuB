@@ -60,7 +60,6 @@ window.RuB = new (function() {
       currentDJ = null,
       currentSongThumbed = null,
       errorLog = [],
-      adminID = "50aeb41fc3b97a2cb4c321b1",
       authorizedUsers = [],
       options = {
         commandChar     : /^!/,
@@ -103,7 +102,11 @@ window.RuB = new (function() {
          },
          authorizedUsers : function(user) {
           if(ensureAdmin(user)) {
-            API.sendChat("Authorized users: " + authorizedUsers.join(", "));
+            var message = "Authorized users:";
+            $.each(authorizedUsers, function(id, ind) {
+              message += (ind > 0 ? ", " : " ") + API.getUser(id).username;
+            });
+            API.sendChat(message);
           }
          },
         /**
@@ -294,8 +297,11 @@ window.RuB = new (function() {
       }
       Playback.stop
     });
-      
-    API.sendChat("DJ-RuB is in the house!");
+    
+    setTimeout(function() {
+      API.sendChat("DJ-RuB is in the house!"); //for some reason, this doesn't appear to be getting called...
+    }, 500);
+    
     Playback.stop();
   });
 })();
