@@ -34,7 +34,7 @@ def log(entry)
     end
   end
   
-  File.open(@log_file, "a+") {|f| f.write entry}
+  File.open(@log_file, "a+") {|f| f.write "#{entry}\n"}
 end
 
 def setup
