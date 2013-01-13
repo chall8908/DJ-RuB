@@ -152,6 +152,9 @@ window.RuB = new (function() {
             }
           }
         },
+        upNext : function(user) {
+          API.sendChat("Up next from DJ RuB: "+$("#up-next").text());
+        },
         /**
          * "woots" the current song
          */
