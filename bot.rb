@@ -12,6 +12,7 @@ js_file = nil
 
 def setup
   p "setting up..."
+  p "Working directory: #{Dir.pwd}"
 
   @browser = Watir::Browser.start 'http://plug.dj/fractionradio/'
   google_button = @browser.div(id: "google")
@@ -39,7 +40,7 @@ def save_song_info(song)
     File.open(File.join(Dir.pwd, "store", "song.yml"), "w+") { |f| f.write(song.to_yaml) }
   rescue
     if Dir.pwd.match(/(unreachable)/)
-      Dir.chdir Dir.pwd.gsub(/\/(unreachable)/, "")
+      Dir.chdir Dir.pwd.gsub(/(unreachable)/, "").gsub(/\/\//, "/")
       retry
     end
   end
