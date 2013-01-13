@@ -249,7 +249,7 @@ window.RuB = new (function() {
 
   this.nowPlaying = function() {
     var media = API.getMedia();
-    media.timeLeft = Playback.elapsed
+    media.elapsed = Playback.elapsed;
     return media;
   };
   
