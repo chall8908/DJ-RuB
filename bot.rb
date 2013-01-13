@@ -1,7 +1,8 @@
 require 'rubygems'
+require 'daemons'
+require 'yaml'
 require 'watir-webdriver'
 require 'headless'
-require 'yaml'
 
 @running = false
 @options = YAML.load_file(File.join(Dir.pwd, "store", "secrets.yml"))
@@ -61,33 +62,35 @@ def save_authorized_users users
   end
 end
 
-Headless.ly do
-  loop do
-    setup unless @running
-    begin
-      @browser.wait_while do
-        sill_alive = nil
-        begin
-          still_alive = @browser.window.exists?
+Daemons.run_proc("DJ-RuB.rb") do
+  Headless.ly do
+    loop do
+      setup unless @running
+      begin
+        @browser.wait_while do
+          sill_alive = nil
+          begin
+            still_alive = @browser.window.exists?
 
-        #this seems kinda hacky, but it works
-        rescue
-          still_alive = false
+          #this seems kinda hacky, but it works
+          rescue
+            still_alive = false
+          end
+
+          still_alive
         end
-
-        still_alive
+        #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
+        @running = false
+        
+      rescue Watir::Wait::TimeoutError
+        p "*badum*  Browser operational."
+        if @js_loaded
+          @browser.execute_script("RuB.heartbeat();")
+          save_song_info @browser.execute_script("return RuB.nowPlaying();")
+          save_authorized_users @browser.execute_script("return RuB.getAuthorizedUsers();")
+        end
+        @running = true
       end
-      #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
-      @running = false
-      
-    rescue Watir::Wait::TimeoutError
-      p "*badum*  Browser operational."
-      if @js_loaded
-        @browser.execute_script("RuB.heartbeat();")
-        save_song_info @browser.execute_script("return RuB.nowPlaying();")
-        save_authorized_users @browser.execute_script("return RuB.getAuthorizedUsers();")
-      end
-      @running = true
     end
   end
 end
