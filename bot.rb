@@ -17,15 +17,15 @@ def setup
   google_button = @browser.div(id: "google")
   if google_button.exists?
     google_button.click
-    @browser.text_field(id: "Email").set @options.email
-    @browser.text_field(id: "Passwd").set @options.pass
+    @browser.text_field(id: "Email").set @options[:email]
+    @browser.text_field(id: "Passwd").set @options[:pass]
     @browser.button(id: "signIn").click
     @browser.goto 'http://plug.dj/fractionradio/'
   end
   begin
     @browser.execute_script @js
     @js_loaded = true
-    @browser.execute_script "RuB.setAuthorizedUsers(#{@options.users.to_json})"
+    @browser.execute_script "RuB.setAuthorizedUsers(#{@options[:users].to_json})"
   rescue Selenium::WebDriver::Error::JavascriptError => e
     p e
   end
@@ -39,8 +39,8 @@ def save_song_info(song)
 end
 
 def save_authorized_users users
-  if @options.users.sort != users.sort
-    @options.users = users
+  if @options[:users].sort != users.sort
+    @options[:users] = users
     File.open(File.join(Dir.pwd, "store", "secrets.yml"), "w+") { |f| f.write(@options.to_yaml) }
   end
 end
