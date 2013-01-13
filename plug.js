@@ -253,7 +253,8 @@ window.RuB = new (function() {
   this.nowPlaying = function() {
     var media = API.getMedia();
     media.elapsed = Playback.elapsed;
-    media.dj = currentDJ ? currentDJ.username : "unknown";
+      //this will use the current dj, if it can be gathered at all
+    media.dj = (currentDJ || (currentDJ = API.getDJs()[0]) || {username: "unknown"}).username;
     return media;
   };
   
