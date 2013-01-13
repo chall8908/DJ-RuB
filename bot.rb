@@ -12,7 +12,6 @@ js_file = nil
 
 def setup
   p "setting up..."
-  p "Working directory: #{Dir.pwd}"
 
   @browser = Watir::Browser.start 'http://plug.dj/fractionradio/'
   google_button = @browser.div(id: "google")
