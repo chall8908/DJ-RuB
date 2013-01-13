@@ -253,7 +253,7 @@ window.RuB = new (function() {
   this.nowPlaying = function() {
     var media = API.getMedia();
     media.elapsed = Playback.elapsed;
-    media.dj = currentDJ.username;
+    media.dj = currentDJ ? currentDJ.username : "unknown";
     return media;
   };
   
