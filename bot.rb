@@ -40,7 +40,7 @@ def save_song_info(song)
   rescue
     if Dir.pwd.match(/(unreachable)/)
       p "Directory unreachable.  Attempting to correct."
-      Dir.chdir Dir.pwd.gsub(/(unreachable)/, "").gsub(/\/\//, "/")
+      Dir.chdir Dir.pwd.gsub(/\(unreachable\)/, "").gsub(/\/\//, "/")
       retry
     end
   end
@@ -54,7 +54,7 @@ def save_authorized_users users
     rescue
       if Dir.pwd.match(/(unreachable)/)
         p "Directory unreachable.  Attempting to correct."
-        Dir.chdir Dir.pwd.gsub(/\/(unreachable)/, "")
+        Dir.chdir Dir.pwd.gsub(/\(unreachable\)/, "").gsub(/\/\//, "/")
         retry
       end
     end
