@@ -1,4 +1,7 @@
 window.RuB = new (function() {
+  if(!API) {
+    return arguments.callee();
+  }
 
   function includes(arr, val) {
     for(var i = 0; i < arr.length; i++) {
@@ -254,7 +257,6 @@ window.RuB = new (function() {
   
   this.setAuthorizedUsers = function(users) {
     authorizedUsers = users;
-    saveAuthorizedUsers();
   };
   
   this.getAuthorizedUsers = function() {
