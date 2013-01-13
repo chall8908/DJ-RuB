@@ -15,7 +15,7 @@ js_file = nil
 def log(entry)
   max_log_size = 5242880 # 5MB
   
-  File.new @log_file unless File.exists? @log_file
+  File.new(@log_file, "w") unless File.exists? @log_file
   
   unless File.size(@log_file) < max_log_size
     File.rename @log_file, @log_file+".#{Time.now}"
