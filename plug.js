@@ -231,7 +231,7 @@ window.RuB = new (function() {
         help : function(user) {
           var keys = Object.keys(commands),
               message = "Available commands are: ";
-          if(ensureAdmin(user) {
+          if(ensureAdmin(user)) {
             message += keys.join(", ");
           } else {
             message += "woot, meh, help, ?";
