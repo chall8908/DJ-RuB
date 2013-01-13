@@ -17,7 +17,7 @@ def log(entry)
   
   File.new @log_file unless File.exists? @log_file
   
-  if File.size(@log_file) > max_log_size
+  unless File.size(@log_file) < max_log_size
     File.rename @log_file, @log_file+".#{Time.now}"
     
     # Remove old logfiles
