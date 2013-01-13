@@ -13,6 +13,29 @@ js_file.close
 js_file = nil
 @log_file = File.join(Dir.pwd, "store", "bot.log")
 
+def setup
+  log "setting up..."
+
+  @browser = Watir::Browser.start 'http://plug.dj/fractionradio/'
+  google_button = @browser.div(id: "google")
+  if google_button.exists?
+    google_button.click
+    @browser.text_field(id: "Email").set @options["email"]
+    @browser.text_field(id: "Passwd").set @options["pass"]
+    @browser.button(id: "signIn").click
+    @browser.goto 'http://plug.dj/fractionradio/'
+  end
+  begin
+    @browser.execute_script @js
+    @js_loaded = true
+    @browser.execute_script "RuB.setAuthorizedUsers(#{@options["users"].to_json})"
+  rescue Selenium::WebDriver::Error::JavascriptError => e
+    log e
+  end
+
+  log "setup complete!"
+end
+
 def log(entry)
   max_log_size = 5242880 # 5MB
   
@@ -38,38 +61,11 @@ def log(entry)
   File.open(@log_file, "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
 end
 
-def setup
-  log "setting up..."
-
-  @browser = Watir::Browser.start 'http://plug.dj/fractionradio/'
-  google_button = @browser.div(id: "google")
-  if google_button.exists?
-    google_button.click
-    @browser.text_field(id: "Email").set @options["email"]
-    @browser.text_field(id: "Passwd").set @options["pass"]
-    @browser.button(id: "signIn").click
-    @browser.goto 'http://plug.dj/fractionradio/'
-  end
-  begin
-    @browser.execute_script @js
-    @js_loaded = true
-    @browser.execute_script "RuB.setAuthorizedUsers(#{@options["users"].to_json})"
-  rescue Selenium::WebDriver::Error::JavascriptError => e
-    log e
-  end
-
-  log "setup complete!"
-end
-
 def save_song_info(song)
   begin
     File.open(File.join(Dir.pwd, "store", "song.yml"), "w+") { |f| f.write(song.to_yaml) }
   rescue
-    if Dir.pwd.match(/(unreachable)/)
-      log "Directory unreachable.  Attempting to correct from #{Dir.pwd}."
-      Dir.chdir Dir.pwd.gsub(/\(unreachable\)/, "").gsub(/\/\//, "/")
-      retry
-    end
+    retry if fix_dir?
   end
 end
 
@@ -79,12 +75,20 @@ def save_authorized_users users
     begin
       File.open(File.join(Dir.pwd, "store", "secrets.yml"), "w+") { |f| f.write(@options.to_yaml) }
     rescue
-      if Dir.pwd.match(/(unreachable)/)
-        p "Directory unreachable.  Attempting to correct."
-        Dir.chdir Dir.pwd.gsub(/\(unreachable\)/, "").gsub(/\/\//, "/")
-        retry
-      end
+      retry if fix_dir?
     end
+  end
+end
+
+# Determines if the current directory is fucked up and fixes it if it is
+# @return [Boolean] true, if the directory was fixed.  false, if it didn't need to be fixed
+def fix_dir?
+  if Dir.pwd.match(/(unreachable)/)
+    log "Directory unreachable.  Attempting to correct from #{Dir.pwd}."
+    Dir.chdir Dir.pwd.gsub(/\(unreachable\)/, "").gsub(/\/\//, "/")
+    true
+  else
+    false
   end
 end
 
