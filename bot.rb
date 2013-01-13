@@ -35,13 +35,27 @@ end
 
 def save_song_info(song)
   p song
-  File.open(File.join(Dir.pwd, "store", "song.yml"), "w+") { |f| f.write(song.to_yaml) }
+  begin
+    File.open(File.join(Dir.pwd, "store", "song.yml"), "w+") { |f| f.write(song.to_yaml) }
+  rescue
+    if Dir.pwd.match(/(unreachable)/)
+      Dir.chdir Dir.pwd.gsub(/\/(unreachable)/, "")
+      retry
+    end
+  end
 end
 
 def save_authorized_users users
   if @options["users"].sort != users.sort
     @options["users"] = users
-    File.open(File.join(Dir.pwd, "store", "secrets.yml"), "w+") { |f| f.write(@options.to_yaml) }
+    begin
+      File.open(File.join(Dir.pwd, "store", "secrets.yml"), "w+") { |f| f.write(@options.to_yaml) }
+    rescue
+      if Dir.pwd.match(/(unreachable)/)
+        Dir.chdir Dir.pwd.gsub(/\/(unreachable)/, "")
+        retry
+      end
+    end
   end
 end
 
@@ -61,7 +75,9 @@ Headless.ly do
 
         still_alive
       end
+      #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
       @running = false
+      
     rescue Watir::Wait::TimeoutError
       p "*badum*  Browser operational."
       if @js_loaded
