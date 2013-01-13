@@ -39,6 +39,7 @@ def save_song_info(song)
     File.open(File.join(Dir.pwd, "store", "song.yml"), "w+") { |f| f.write(song.to_yaml) }
   rescue
     if Dir.pwd.match(/(unreachable)/)
+      p "Directory unreachable.  Attempting to correct."
       Dir.chdir Dir.pwd.gsub(/(unreachable)/, "").gsub(/\/\//, "/")
       retry
     end
@@ -52,6 +53,7 @@ def save_authorized_users users
       File.open(File.join(Dir.pwd, "store", "secrets.yml"), "w+") { |f| f.write(@options.to_yaml) }
     rescue
       if Dir.pwd.match(/(unreachable)/)
+        p "Directory unreachable.  Attempting to correct."
         Dir.chdir Dir.pwd.gsub(/\/(unreachable)/, "")
         retry
       end
