@@ -19,7 +19,7 @@ def log(entry)
     
     # Remove old logfiles
     log_files = Dir.entries(Dir.pwd)
-                .select { |v| v.match(/bot\.log\./}
+                .select { |v| v.match(/bot\.log\./) }
                 .sort {|a, b|
                   a_time = Time.at a.split(".").last.to_i
                   b_time = Time.at b.split(".").last.to_i
