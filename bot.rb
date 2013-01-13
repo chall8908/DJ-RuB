@@ -10,6 +10,29 @@ js_file = File.open(File.join(Dir.pwd, "plug.js"))
 @js = js_file.read
 js_file.close
 js_file = nil
+@log_file = File.join(Dir.pwd, "store", "bot.log")
+
+def log(entry)
+  max_log_size = 5242880 # 5MB
+  if File.size(@log_file) > max_log_size
+    File.rename @log_file, @log_file+".#{Time.now}"
+    
+    # Remove old logfiles
+    log_files = Dir.entries(Dir.pwd)
+                .select { |v| v.match(/bot\.log\./}
+                .sort {|a, b|
+                  a_time = Time.at a.split(".").last.to_i
+                  b_time = Time.at b.split(".").last.to_i
+                  
+                  a_time <=> b_time
+                }
+    while log_files.length > 4 do
+      File.delete log_files.pop
+    end
+  end
+  
+  File.open(@log_file, "a+") {|f| f.write entry}
+end
 
 def setup
   p "setting up..."
@@ -62,7 +85,7 @@ def save_authorized_users users
   end
 end
 
-Daemons.run_proc("DJ-RuB.rb") do
+Daemons.run_proc("DJ-RuB") do
   Headless.ly do
     loop do
       setup unless @running

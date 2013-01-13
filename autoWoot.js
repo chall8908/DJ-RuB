@@ -4,6 +4,5 @@
     if(data.dj.id != me.id) {
       $("#button-vote-positive").click();
     }
-    Playback.stop();
   });
 })();
