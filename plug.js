@@ -104,7 +104,7 @@ window.RuB = new (function() {
         /**
          * Provides a user with access to RuB's functions
          */
-        authorizeUser : function(user, name, silent) {
+        authorizeUser : function(user, name) {
           if(ensureAdmin(user)) {
             var newUser = findUserByName(name);
             if(newUser) {
@@ -293,6 +293,7 @@ window.RuB = new (function() {
         commands.woot(me, true);
       }
       Playback.stop
+    });
       
     API.sendChat("DJ-RuB is in the house!");
     Playback.stop();
