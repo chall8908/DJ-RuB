@@ -35,7 +35,7 @@ def log(entry)
 end
 
 def setup
-  p "setting up..."
+  log "setting up..."
 
   @browser = Watir::Browser.start 'http://plug.dj/fractionradio/'
   google_button = @browser.div(id: "google")
@@ -51,19 +51,18 @@ def setup
     @js_loaded = true
     @browser.execute_script "RuB.setAuthorizedUsers(#{@options["users"].to_json})"
   rescue Selenium::WebDriver::Error::JavascriptError => e
-    p e
+    log e
   end
 
-  p "setup complete!"
+  log "setup complete!"
 end
 
 def save_song_info(song)
-  p song
   begin
     File.open(File.join(Dir.pwd, "store", "song.yml"), "w+") { |f| f.write(song.to_yaml) }
   rescue
     if Dir.pwd.match(/(unreachable)/)
-      p "Directory unreachable.  Attempting to correct."
+      log "Directory unreachable.  Attempting to correct from #{Dir.pwd}."
       Dir.chdir Dir.pwd.gsub(/\(unreachable\)/, "").gsub(/\/\//, "/")
       retry
     end
@@ -106,7 +105,6 @@ Daemons.run_proc("DJ-RuB") do
         @running = false
         
       rescue Watir::Wait::TimeoutError
-        p "*badum*  Browser operational."
         if @js_loaded
           @browser.execute_script("RuB.heartbeat();")
           save_song_info @browser.execute_script("return RuB.nowPlaying();")
