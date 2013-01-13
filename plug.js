@@ -236,11 +236,10 @@ window.RuB = new (function() {
           } else {
             message += "woot, meh, help, ?";
           }
-          
           API.sendChat(message);
         },
         level : function(user) {
-          API.sendMessage("@"+user.username+" your permission level is "+user.permission+".";
+          API.sendMessage("@"+user.username+" your permission level is "+user.permission+".");
         }
       },
       aliases = {
