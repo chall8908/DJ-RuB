@@ -1,7 +1,4 @@
 window.RuB = new (function() {
-  if(!API) {
-    return arguments.callee();
-  }
 
   function includes(arr, val) {
     for(var i = 0; i < arr.length; i++) {
@@ -102,6 +99,11 @@ window.RuB = new (function() {
             } else {
               API.sendChat("No errors reported, boss.");
             }
+          }
+         },
+         authorizedUsers : function(user) {
+          if(ensureAdmin(user)) {
+            API.sendChat("Authorized users: " + authorizedUsers.join(", "));
           }
          },
         /**
@@ -246,12 +248,8 @@ window.RuB = new (function() {
   };
 
   this.nowPlaying = function() {
-    var media = API.getMedia(),
-        curTime = $("#time-remaining-value").text().split(":");
-    media.timeLeft = 0;
-    $.each(curTime, function(piece, ind) {
-      media.timeLeft += parseInt(piece) * ((curTime.length-1-ind)*60);
-    });
+    var media = API.getMedia();
+    media.timeLeft = Playback.elapsed
     return media;
   };
   
