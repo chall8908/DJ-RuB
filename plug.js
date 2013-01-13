@@ -57,7 +57,7 @@ window.RuB = new (function() {
   }
 
   var me = API.getSelf(),
-      currentDJ = null,
+      currentDJ = API.getDJs()[0],
       currentSongThumbed = null,
       errorLog = [],
       authorizedUsers = [],
@@ -265,44 +265,39 @@ window.RuB = new (function() {
     return authorizedUsers;
   };
   
-  $(function() {
-    API.addEventListener(API.CHAT, function(data) {
-      if(data.type == "message") {
-        if(data.message.match(options.commandChar)) {
-          if(authorizedUser(data.fromID)) {
-            var params = data.message.replace(options.commandChar, "").split(" "),
-                com = params.shift();
+  API.addEventListener(API.CHAT, function(data) {
+    if(data.type == "message") {
+      if(data.message.match(options.commandChar)) {
+        if(authorizedUser(data.fromID)) {
+          var params = data.message.replace(options.commandChar, "").split(" "),
+              com = params.shift();
 
-            params.unshift(API.getUser(data.fromID));
-            try {
-              if(typeof(commands[com]) == "undefined") {
-                API.sendChat("Er... what?  Try !help");
-              } else {
-                commands[com].apply(RuB, params);
-              }
-            } catch(e) {
-              errorLog.push(e.name + ": "+e.message);
-              API.sendChat("Well, that didn't work...");
+          params.unshift(API.getUser(data.fromID));
+          try {
+            if(typeof(commands[com]) == "undefined") {
+              API.sendChat("Er... what?  Try !help");
+            } else {
+              commands[com].apply(RuB, params);
             }
+          } catch(e) {
+            errorLog.push(e.name + ": "+e.message);
+            API.sendChat("Well, that didn't work...");
           }
         }
       }
-    });
-
-    API.addEventListener(API.DJ_ADVANCE, function(data) {
-      currentSongThumbed = null;
-      currentDJ = data.dj;
-      if(currentDJ.permission > 0 && currentDJ.id != me.id) {
-        //autowoot
-        commands.woot(me, true);
-      }
-      Playback.stop
-    });
-    
-    setTimeout(function() {
-      API.sendChat("DJ-RuB is in the house!"); //for some reason, this doesn't appear to be getting called...
-    }, 500);
-    
-    Playback.stop();
+    }
   });
+
+  API.addEventListener(API.DJ_ADVANCE, function(data) {
+    currentSongThumbed = null;
+    currentDJ = data.dj;
+    if(currentDJ.permission > 0 && currentDJ.id != me.id) {
+      //autowoot
+      commands.woot(me, true);
+    }
+    Playback.stop
+  });
+  
+  API.sendChat("DJ-RuB is in the house!");
+  Playback.stop();
 })();
