@@ -3,6 +3,7 @@ require 'daemons'
 require 'yaml'
 require 'watir-webdriver'
 require 'headless'
+require 'date'
 
 @running = false
 @options = YAML.load_file(File.join(Dir.pwd, "store", "secrets.yml"))
@@ -34,7 +35,7 @@ def log(entry)
     end
   end
   
-  File.open(@log_file, "a+") {|f| f.write "#{entry}\n"}
+  File.open(@log_file, "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
 end
 
 def setup
