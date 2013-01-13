@@ -12,7 +12,7 @@ window.RuB = new (function() {
   function ensureAdmin(user) {
     var admin = user.admin || user.owner;
     if(!admin) {
-      API.sendChat("I'm afraid I can't let you do that, "+user.username);
+      API.sendChat("I'm afraid I can't let you do that, @"+user.username);
     }
     return admin;
   }
@@ -228,9 +228,19 @@ window.RuB = new (function() {
         /**
          * Display a list of commands
          */
-        help : function() {
-          var keys = Object.keys(commands);
-          API.sendChat("Available commands are: \n"+keys.join("\n "));
+        help : function(user) {
+          var keys = Object.keys(commands),
+              message = "Available commands are: ";
+          if(ensureAdmin(user) {
+            message += keys.join(", ");
+          } else {
+            message += "woot, meh, help, ?";
+          }
+          
+          API.sendChat(message);
+        },
+        level : function(user) {
+          API.sendMessage("@"+user.username+" your permission level is "+user.permission+".";
         }
       },
       aliases = {
@@ -284,7 +294,11 @@ window.RuB = new (function() {
             errorLog.push(e.name + ": "+e.message);
             API.sendChat("Well, that didn't work...");
           }
+        } else {
+          API.sendChat("Sorry, you're not on the list, @"+data.from+".");
         }
+      } else if(data.message.match(/^@DJ-RuB/)) {
+        API.sendChat("@"+data.from+" Please direct all queries to @Vel");
       }
     }
   });
