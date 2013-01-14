@@ -53,6 +53,18 @@ def saveSongInfo(song)
 #  end
 end
 
+def addSongToPlaylist(cid, currentSongID)
+  if cid == currentSongID
+    @browser.div(id: "button-add-this").click
+    @browser.wait_until do
+      @browser.div(class: "pop-menu").exists?
+    end
+    @browser.div(class: "pop-menu").li.click
+  else
+    @browser.execute_script("API.sendChat('Sorry, I missed adding that song.');")
+  end
+end
+
 Headless.ly do
   loop do
     setup unless @running

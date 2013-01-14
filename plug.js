@@ -270,6 +270,14 @@ window.RuB = new (function() {
       //autowoot
       commands.woot(me, true);
     }
+    Playback.stop();
+  });
+
+  API.addEventListener(API.CURATE_UPDATE, function(data) {
+    var user = data.user;
+    if(user.id == me.id) {
+      API.sendChat("This song is badass.  I'm totally playing this shit now.");
+    }
   });
 
   this.heartbeat = function() {
@@ -280,7 +288,7 @@ window.RuB = new (function() {
 
   this.nowPlaying = function() {
     var media = API.getMedia(),
-        curTime = $("#time-remaining-value").text().split(":");
+        curTime = Playback.elapsed;
     media.timeLeft = 0;
     $.each(curTime, function(piece, ind) {
       media.timeLeft += parseInt(piece) * ((curTime.length-1-ind)*60);
@@ -290,10 +298,6 @@ window.RuB = new (function() {
 
   API.sendChat("DJ-RuB is in the house!");
 
-  window.onbeforeunload = function() {
-    commands.stopPlaying(me);
-    API.sendChat("DJ-RuB signing off!");
-    return;
-  };
+  Playback.stop();
 
 })();
