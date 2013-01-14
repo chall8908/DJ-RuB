@@ -12,7 +12,7 @@ window.RuB = new (function() {
   function ensureAdmin(user) {
     var admin = user.admin || user.owner;
     if(!admin) {
-      API.sendChat("I'm afraid I can't let you do that, "+user.username);
+      API.sendChat("I'm afraid I can't let you do that, @"+user.username);
     }
     return admin;
   }
@@ -28,7 +28,7 @@ window.RuB = new (function() {
       }
     });
 
-    if(!user) {
+    if(!user && name) {
       API.sendChat("I don't know who that is.");
     }
 
@@ -39,7 +39,7 @@ window.RuB = new (function() {
     var DJs = API.getDJs(),
         onDeck = false;
 
-    $.each(DJs, function(dj) {
+    $.each(DJs, function(i, dj) {
       if(dj.id == user.id) {
         onDeck = true;
         return false;
@@ -49,12 +49,18 @@ window.RuB = new (function() {
     return onDeck;
   }
 
+  /**
+   * Checks if the user is authorized to perform commands
+   */
+  function authorizedUser(id) {
+    return includes(authorizedUsers, id) !== false;
+  }
+
   var me = API.getSelf(),
-      currentDJ = null,
+      currentDJ = API.getDJs()[0],
       currentSongThumbed = null,
       errorLog = [],
-      adminID = "50aeb41fc3b97a2cb4c321b1",
-      authorizedUsers = JSON.parse(localStorage.getItem("authorizedUsers")) || [adminID],
+      authorizedUsers = [],
       options = {
         commandChar     : /^!/,
         showHeartbeat   : false
@@ -81,8 +87,26 @@ window.RuB = new (function() {
          */
          dumpErrors : function(user) {
           if(ensureAdmin(user)) {
-            API.sendChat(errorLog.join("\n"));
-            errorLog = [];
+            if(errorLog.length) {
+              API.sendChat("It's about to get spammy in here.");
+              setTimeout(function() {
+                API.sendChat("Error log:");
+                $.each(errorLog, function(i, error) {
+                  API.sendChat(error);
+                });
+              }, 2000);
+            } else {
+              API.sendChat("No errors reported, boss.");
+            }
+          }
+         },
+         authorizedUsers : function(user) {
+          if(ensureAdmin(user)) {
+            var message = "Authorized users:";
+            $.each(authorizedUsers, function(id, ind) {
+              message += (ind > 0 ? ", " : " ") + API.getUser(id).username;
+            });
+            API.sendChat(message);
           }
          },
         /**
@@ -90,11 +114,15 @@ window.RuB = new (function() {
          */
         authorizeUser : function(user, name) {
           if(ensureAdmin(user)) {
+            var args = Array.prototype.slice.call(arguments);
+            if(args.length > 2) { //the new user's name may have a space in it
+              args.shift();
+              name = $.trim(args.join(" "));
+            }
             var newUser = findUserByName(name);
             if(newUser) {
               if(includes(authorizedUsers, newUser.id) === false) {
                 authorizedUsers.push(newUser.id);
-                saveAuthorizedUsers();
                 API.sendChat(name+" is now an authorized user.");
               } else {
                 API.sendChat(name+" is already an authorized user.");
@@ -107,18 +135,25 @@ window.RuB = new (function() {
          */
         deauthorizeUser : function(user, name) {
           if(ensureAdmin(user)) {
+            var args = Array.prototype.slice.call(arguments);
+            if(args.length > 2) { //the old user's name may have a space in it
+              args.shift();
+              name = $.trim(args.join(" "));
+            }
             var oldUser = findUserByName(name);
             if(oldUser) {
               var ind = includes(authorizedUsers, oldUser.id);
               if(ind !== false) {
                 authorizedUsers.splice(ind, 1);
-                saveAuthorizedUsers();
                 API.sendChat("Deauthorized "+oldUser.username);
               } else {
                 API.sendChat(name+" is not an authorized user.");
               }
             }
           }
+        },
+        upNext : function(user) {
+          API.sendChat("Up next from DJ RuB: "+$("#up-next").text());
         },
         /**
          * "woots" the current song
@@ -206,9 +241,18 @@ window.RuB = new (function() {
         /**
          * Display a list of commands
          */
-        help : function() {
-          var keys = Object.keys(commands);
-          API.sendChat("Available commands are: \n"+keys.join("\n "));
+        help : function(user) {
+          var keys = Object.keys(commands),
+              message = "Available commands are: ";
+          if(ensureAdmin(user)) {
+            message += keys.join(", ");
+          } else {
+            message += "woot, meh, help, ?";
+          }
+          API.sendChat(message);
+        },
+        level : function(user) {
+          API.sendChat("@"+user.username+" your permission level is "+user.permission+".");
         }
       },
       aliases = {
@@ -222,20 +266,27 @@ window.RuB = new (function() {
 
   $.extend(commands, aliases);
 
-  /**
-   * Checks if the user is authorized to perform commands
-   */
-  function authorizedUser(id) {
-    return includes(authorizedUsers, id) !== false;
-  }
+  this.heartbeat = function() {
+    if(options.showHeartbeat) {
+      API.sendChat("*badum*");
+    }
+  };
 
-  /**
-   *
-   */
-  function saveAuthorizedUsers() {
-    localStorage.removeItem("authorizedUsers");
-    localStorage.setItem("authorizedUsers", options.authorizedUsers);
-  }
+  this.nowPlaying = function() {
+    var media = API.getMedia();
+    media.elapsed = Playback.elapsed;
+      //this will use the current dj, if it can be gathered at all
+    media.dj = (currentDJ || (currentDJ = API.getDJs()[0]) || {username: "unknown"}).username;
+    return media;
+  };
+
+  this.setAuthorizedUsers = function(users) {
+    authorizedUsers = users;
+  };
+
+  this.getAuthorizedUsers = function() {
+    return authorizedUsers;
+  };
 
   API.addEventListener(API.CHAT, function(data) {
     if(data.type == "message") {
@@ -252,13 +303,14 @@ window.RuB = new (function() {
               commands[com].apply(RuB, params);
             }
           } catch(e) {
-            var error = e.name + ": "+e.message;
-            console.log(error);
-            console.log(e.stack);
-            errorLog.push(error);
+            errorLog.push(e.name + ": "+e.message);
             API.sendChat("Well, that didn't work...");
           }
+        } else {
+          API.sendChat("Sorry, you're not on the list, @"+data.from+".");
         }
+      } else if(data.message.match(/^@DJ-RuB/)) {
+        API.sendChat("@"+data.from+" Please direct all queries to @Vel");
       }
     }
   });
@@ -280,11 +332,24 @@ window.RuB = new (function() {
     }
   });
 
-  this.heartbeat = function() {
-    if(options.showHeartbeat) {
-      API.sendChat("*badum*");
+  API.addEventListener(API.USER_JOIN, function(user) {
+    if(user.username.match(/^User-/)) {
+      API.sendChat("Hello, @"+user.username+".  You might want to change your name.  Default names are uncool.");
+    } else if(user.username != me.username) {
+      API.sendChat("Welcome to Fraction Radio, @"+user.username+".");
+    } else {
+      API.sendChat("DJ-RuB is in the house!");
+      Playback.stop();
     }
-  }
+  });
+
+  API.addEventListener(API.USER_LEAVE, function(user) {
+    if(user.username.match(/^User-/)) {
+      API.sendChat("Some random left.  Good riddance.");
+    } else {
+      API.sendChat("Laters, @"+user.username+"!");
+    }
+  });
 
   this.nowPlaying = function() {
     var media = API.getMedia(),
@@ -295,9 +360,5 @@ window.RuB = new (function() {
     });
     return JSON.stringify(media);
   }
-
-  API.sendChat("DJ-RuB is in the house!");
-
-  Playback.stop();
 
 })();
