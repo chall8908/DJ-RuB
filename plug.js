@@ -190,8 +190,12 @@ window.RuB = new (function() {
         startPlaying : function(user) {
           if(ensureAdmin(user)) {
             //API.moderateAddDJ(me.id);
-            $("#button-dj-play").click();
-            API.sendChat("It's not a party unless DJ RuB is on deck!");
+            var djButton = $("#button-dj-play"),
+                waitList = $("#button-dj-waitlist-join");
+            if(djButton.is(":visible")) {
+              $("#button-dj-play").click();
+              API.sendChat("It's not a party unless DJ RuB is on deck!");
+            }
           }
         },
         /**
