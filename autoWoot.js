@@ -6,7 +6,7 @@
       onDeck          = false,
       waitListSize    = API.getWaitList().length;
       
-  var __waitListJoin = API.waitListJoin();
+  var __waitListJoin = API.waitListJoin;
   API.waitListJoin = function() {
     if(djButton.is(":visible")) {
       djButton.click();

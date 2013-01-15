@@ -58,6 +58,8 @@ window.RuB = new (function() {
 
   var me = API.getSelf(),
       currentDJ = API.getDJs()[0],
+      djButton = $("#button-dj-play"),
+      waitList = $("#button-dj-waitlist-join"),
       currentSongThumbed = null,
       errorLog = [],
       authorizedUsers = [],
@@ -190,11 +192,14 @@ window.RuB = new (function() {
         startPlaying : function(user) {
           if(ensureAdmin(user)) {
             //API.moderateAddDJ(me.id);
-            var djButton = $("#button-dj-play"),
-                waitList = $("#button-dj-waitlist-join");
             if(djButton.is(":visible")) {
-              $("#button-dj-play").click();
+              djButton.click();
               API.sendChat("It's not a party unless DJ RuB is on deck!");
+            } else if(waitListButton.is(":visible")) {
+              waitListButton.click();
+              API.sendChat("Can't wait to get on deck!");
+            } else {
+              API.sendChat("This party is lame.  I can't even join the wait list!");
             }
           }
         },
