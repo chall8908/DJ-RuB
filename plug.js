@@ -57,10 +57,11 @@ window.RuB = new (function() {
   }
 
   var me = API.getSelf(),
+      onDeck = false,
       currentDJ = API.getDJs()[0],
       djButton = $("#button-dj-play"),
-      waitList = $("#button-dj-waitlist-join"),
       currentSongThumbed = null,
+      deadAirCounter = 0,
       errorLog = [],
       authorizedUsers = [],
       options = {
@@ -155,7 +156,9 @@ window.RuB = new (function() {
           }
         },
         upNext : function(user) {
-          API.sendChat("Up next from DJ RuB: "+$("#up-next").text());
+          if(onDeck) {
+            API.sendChat("Up next from DJ RuB: "+$("#up-next").text());
+          }
         },
         /**
          * "woots" the current song
@@ -182,6 +185,7 @@ window.RuB = new (function() {
          */
         addSong : function(user) {
           if(ensureAdmin(user)) {
+            API.sendChat("Sorry, I can't do that yet."); return;
             $("#button-add-this").click();
             $("#pop-menu-container .pop-menu-row-label").eq(0).click();
           }
@@ -191,16 +195,11 @@ window.RuB = new (function() {
          */
         startPlaying : function(user) {
           if(ensureAdmin(user)) {
-            //API.moderateAddDJ(me.id);
-            if(djButton.is(":visible")) {
+            if(djButton.is(":visible") && !onDeck) {
+              onDeck = true;
               djButton.click();
               API.sendChat("It's not a party unless DJ RuB is on deck!");
-            } else if(waitListButton.is(":visible")) {
-              waitListButton.click();
-              API.sendChat("Can't wait to get on deck!");
-            } else {
-              API.sendChat("This party is lame.  I can't even join the wait list!");
-            }
+            } 
           }
         },
         /**
@@ -208,9 +207,18 @@ window.RuB = new (function() {
          */
         stopPlaying : function(user) {
           if(ensureAdmin(user)) {
-            //API.moderateRemoveDJ(me.id);
-            $("#button-dj-quit").click();
-            API.sendChat("Guess the party's over gents.");
+            if(onDeck) {
+              onDeck = false;
+              $("#button-dj-quit").click();
+              API.sendChat("Guess the party's over gents.");
+            }
+          }
+        },
+        deadAir : function(user) {
+          deadAirCounter++;
+          if(deadAirCounter > (API.getAudience().length + API.getDJs().length - 2)) {
+            API.moderateForceSkip();
+            API.sendChat("Sorry, bro.  That shit was busted.");
           }
         },
         /**
@@ -222,7 +230,7 @@ window.RuB = new (function() {
             if(dj) {
               if(!isDJing(dj)) {
                 API.moderateAddDJ(dj.id);
-                API.sendChat("Get up here, "+name+"!  It's time to rock this joint!");
+                API.sendChat("Get up here, @"+name+"!  It's time to rock this joint!");
               } else {
                 API.sendChat(name+" is already DJing.");
               }
@@ -275,28 +283,6 @@ window.RuB = new (function() {
 
   $.extend(commands, aliases);
 
-  this.heartbeat = function() {
-    if(options.showHeartbeat) {
-      API.sendChat("*badum*");
-    }
-  };
-
-  this.nowPlaying = function() {
-    var media = API.getMedia();
-    media.elapsed = Playback.elapsed;
-      //this will use the current dj, if it can be gathered at all
-    media.dj = (currentDJ || (currentDJ = API.getDJs()[0]) || {username: "unknown"}).username;
-    return media;
-  };
-
-  this.setAuthorizedUsers = function(users) {
-    authorizedUsers = users;
-  };
-
-  this.getAuthorizedUsers = function() {
-    return authorizedUsers;
-  };
-
   API.addEventListener(API.CHAT, function(data) {
     if(data.type == "message") {
       if(data.message.match(options.commandChar)) {
@@ -327,11 +313,18 @@ window.RuB = new (function() {
   API.addEventListener(API.DJ_ADVANCE, function(data) {
     currentSongThumbed = null;
     currentDJ = data.dj;
+    deadAirCounter = 0;
     if(currentDJ.permission > 0 && currentDJ.id != me.id) {
       //autowoot
       commands.woot(me, true);
     }
     Playback.stop();
+  });
+  
+  API.addEventListener(API.DJ_UPDATE, function(djs) {
+    if(djs.length < 5 && API.getWaitList().length == 0 && onDeck) {
+      djButton.click();
+    }
   });
 
   API.addEventListener(API.CURATE_UPDATE, function(data) {
@@ -359,15 +352,29 @@ window.RuB = new (function() {
       API.sendChat("Laters, @"+user.username+"!");
     }
   });
+  
+  //Methods below here are accessable to the backing ruby script
+
+  this.heartbeat = function() {
+    if(options.showHeartbeat) {
+      API.sendChat("*badum*");
+    }
+  };
 
   this.nowPlaying = function() {
-    var media = API.getMedia(),
-        curTime = Playback.elapsed;
-    media.timeLeft = 0;
-    $.each(curTime, function(piece, ind) {
-      media.timeLeft += parseInt(piece) * ((curTime.length-1-ind)*60);
-    });
-    return JSON.stringify(media);
-  }
+    var media = API.getMedia();
+    media.elapsed = Playback.elapsed;
+      //this will use the current dj, if it can be gathered at all
+    media.dj = (currentDJ || (currentDJ = API.getDJs()[0]) || {username: "unknown"}).username;
+    return media;
+  };
+
+  this.setAuthorizedUsers = function(users) {
+    authorizedUsers = users;
+  };
+
+  this.getAuthorizedUsers = function() {
+    return authorizedUsers;
+  };
 
 })();

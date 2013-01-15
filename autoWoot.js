@@ -26,7 +26,7 @@
   });
   
   API.addEventListener(API.DJ_UPDATE, function(djs) {
-    if(onDeck) {
+    if(onDeck && !onWaitList) {
       //maybe we left?
       onDeck = false;
       $.each(djs, function(i, dj) {
@@ -40,7 +40,7 @@
   });
   
   API.addEventListener(API.WAIT_LIST_UPDATE, function(users) {
-    if(onWaitList && users.length < waitListSize) {
+    if(onWaitList && users.length < waitListSize && !onDeck) {
       //Make sure we weren't just removed
       waitListSize = users.length;
       onWaitList = false;
