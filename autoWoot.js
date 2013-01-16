@@ -1,3 +1,7 @@
+/* to use in bookmarks:
+ *    javascript:$("<script />").attr('id', 'plug-auto-scripts').attr('src', 'https://raw.github.com/chall8908/DJ-RuB/master/autoWoot.js').appendTo("body");
+ */
+
 (function() {
   var djButton        = $("#button-dj-play"),
       waitListButton  = $('#button-dj-waitlist-join'),
