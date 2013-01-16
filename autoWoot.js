@@ -84,10 +84,10 @@
   });
 
   API.addEventListener(API.CHAT, function(data) {
-    if(data.message.match(/^##/)) {
-      if(data.message.match("rave$")) {
+    if(data.user.id == "50ef4f8b3e083e2a4bc1310c") {
+      if(data.message == "Assuming direct control.") {
         activateRaveMode();
-      } else if(data.message.match("chill$")) {
+      } else if(data.message == "Rescinding lockdown.") {
         deactivateRaveMode();
       }
     }

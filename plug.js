@@ -255,6 +255,12 @@ window.RuB = new (function() {
             }
           }
         },
+        rave : function() {
+          API.sendChat("Assuming direct control.");
+        },
+        chill : function() {
+          API.sendChat("Rescinding lockdown.");
+        },
         /**
          * Display a list of commands
          */
