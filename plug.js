@@ -9,9 +9,9 @@ window.RuB = new (function() {
     return false;
   }
 
-  function ensureAdmin(user) {
-    var admin = user.admin || user.owner;
-    if(!admin) {
+  function ensureAdmin(user, silent) {
+    var admin = user.permission > Models.user.BOUNCER || user.owner;
+    if(!admin && !silent) {
       API.sendChat("I'm afraid I can't let you do that, @"+user.username);
     }
     return admin;
@@ -106,7 +106,7 @@ window.RuB = new (function() {
          authorizedUsers : function(user) {
           if(ensureAdmin(user)) {
             var message = "Authorized users:";
-            $.each(authorizedUsers, function(id, ind) {
+            $.each(authorizedUsers, function(ind, id) {
               message += (ind > 0 ? ", " : " ") + API.getUser(id).username;
             });
             API.sendChat(message);
@@ -199,7 +199,7 @@ window.RuB = new (function() {
               onDeck = true;
               djButton.click();
               API.sendChat("It's not a party unless DJ RuB is on deck!");
-            } 
+            }
           }
         },
         /**
@@ -261,7 +261,7 @@ window.RuB = new (function() {
         help : function(user) {
           var keys = Object.keys(commands),
               message = "Available commands are: ";
-          if(ensureAdmin(user)) {
+          if(ensureAdmin(user, true)) {
             message += keys.join(", ");
           } else {
             message += "woot, meh, help, ?";
@@ -298,6 +298,8 @@ window.RuB = new (function() {
               commands[com].apply(RuB, params);
             }
           } catch(e) {
+            errorLog.push("Command: "+com);
+            errorLog.push("Parameters: "+params.join(", "));
             errorLog.push(e.name + ": "+e.message);
             API.sendChat("Well, that didn't work...");
           }
@@ -320,7 +322,7 @@ window.RuB = new (function() {
     }
     Playback.stop();
   });
-  
+
   API.addEventListener(API.DJ_UPDATE, function(djs) {
     if(djs.length < 5 && API.getWaitList().length == 0 && onDeck) {
       djButton.click();
@@ -352,7 +354,7 @@ window.RuB = new (function() {
       API.sendChat("Laters, @"+user.username+"!");
     }
   });
-  
+
   //Methods below here are accessable to the backing ruby script
 
   this.heartbeat = function() {
