@@ -7,22 +7,23 @@
       waitListSize    = API.getWaitList().length,
       raveInt         = 0,
       avatars         = [],
-      currentAvi      = 0;
+      currentAvi      = 0,
+      defaultAvi      = me.avatarID;
 
   (function() {
-    var el = $("#avatar-panel");
-    el.find(".avatar-button").each(function() {
-      var me = $(this);
-      if(!me.find(".avatar-lock-button").size()) {
-        var fileArry = me.find("img").attr("src").split(".")[0].split("/");
-        avatars.push(fileArry[fileArry.length-1]);
+    var totalPoints = me.curatorPoints + me.djPoints + me.listenerPoints + 1;
+    $.each(AvatarOverlay.getOriginalSet(), function(i, aviSet) {
+      if(aviSet.required <= totalPoints) {
+        avatars = avatars.concat(aviSet.avatars);
       }
     });
+    console.log(avatars);
+    $("#overlay-close-button").click();
   })();
 
   function activateRaveMode() {
     raveInt = setInterval(function() {
-      Models.user.changeAvatar(avatars[currentAvi]);
+      new UserChangeAvatarService(avatars[currentAvi]);
       currentAvi++;
       if(currentAvi >= avatars.length) {
         currentAvi = 0;
@@ -32,6 +33,7 @@
 
   function deactivateRaveMode() {
     clearInterval(raveInt);
+    new UserChangeAvatarService(defaultAvi);
   }
 
   var __waitListJoin = API.waitListJoin;
