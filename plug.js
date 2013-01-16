@@ -266,7 +266,7 @@ window.RuB = new (function() {
          */
         help : function(user) {
           var keys = Object.keys(commands);
-          API.sendChat("Available commands are:");
+          API.sendChat("Available commands for you are:");
           if(ensureAdmin(user, true)) {
             while(keys.length) {
               API.sendChat(keys.splice(0,10).join(", "));
@@ -274,7 +274,6 @@ window.RuB = new (function() {
           } else {
             API.sendChat("woot, meh, help, ?");
           }
-          API.sendChat(message);
         },
         level : function(user) {
           API.sendChat("@"+user.username+" your permission level is "+user.permission+".");
