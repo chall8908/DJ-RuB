@@ -17,8 +17,6 @@
         avatars = avatars.concat(aviSet.avatars);
       }
     });
-    console.log(avatars);
-    $("#overlay-close-button").click();
   })();
 
   function activateRaveMode() {
