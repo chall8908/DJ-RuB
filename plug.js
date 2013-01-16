@@ -265,12 +265,14 @@ window.RuB = new (function() {
          * Display a list of commands
          */
         help : function(user) {
-          var keys = Object.keys(commands),
-              message = "Available commands are: ";
+          var keys = Object.keys(commands);
+          API.sendChat("Available commands are:");
           if(ensureAdmin(user, true)) {
-            message += keys.join(", ");
+            while(keys.length) {
+              API.sendChat(keys.splice(0,10).join(", "));
+            }
           } else {
-            message += "woot, meh, help, ?";
+            API.sendChat("woot, meh, help, ?");
           }
           API.sendChat(message);
         },
