@@ -88,7 +88,7 @@
   });
 
   API.addEventListener(API.CHAT, function(data) {
-    if(data.user.id == "50ef4f8b3e083e2a4bc1310c") {
+    if(data.fromID == "50ef4f8b3e083e2a4bc1310c") {
       if(data.message == "Assuming direct control.") {
         activateRaveMode();
       } else if(data.message == "Rescinding lockdown.") {
