@@ -1,3 +1,6 @@
+/*
+ * TODO: startPlaying should return confirmation on successful queue
+ */
 window.RuB = new (function() {
 
   function includes(arr, val) {
@@ -199,6 +202,8 @@ window.RuB = new (function() {
               onDeck = true;
               djButton.click();
               API.sendChat("It's not a party unless DJ RuB is on deck!");
+            } else {
+              API.sendChat("Maybe later.  Looks a little full right now.")
             }
           }
         },

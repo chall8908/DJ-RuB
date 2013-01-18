@@ -24,6 +24,7 @@
   })();
 
   function activateRaveMode() {
+    clearInterval(raveInt);
     raveInt = setInterval(function() {
       new UserChangeAvatarService(avatars[currentAvi]);
       currentAvi++;
