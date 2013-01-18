@@ -1,6 +1,3 @@
-/*
- * TODO: startPlaying should return confirmation on successful queue
- */
 window.RuB = new (function() {
 
   function includes(arr, val) {
