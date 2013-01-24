@@ -50,6 +50,14 @@ window.RuB = new (function() {
   }
 
   /**
+   * Wrapper function for getting the current DJ
+   * Should always return a user
+   */
+  function getCurrentDJ() {
+    return currentDJ || (currentDJ = API.getDJs()[0]);
+  }
+
+  /**
    * Checks if the user is authorized to perform commands
    */
   function authorizedUser(id) {
@@ -165,7 +173,7 @@ window.RuB = new (function() {
          * "woots" the current song
          */
         woot : function(user, silent) {
-          if(currentDJ.id != me.id && !upVoteButton.css("background-image").match(/Selected/)) {
+          if(getCurrentDJ().id != me.id && !upVoteButton.css("background-image").match(/Selected/)) {
             upVoteButton.click();
             if(!silent) { API.sendChat("WOOHOO!"); }
           }
@@ -174,7 +182,7 @@ window.RuB = new (function() {
          * "mehs" the current song
          */
         meh : function(user, silent) {
-          if(currentDJ.id != me.id && !downVoteButton.css("background-image").match(/Selected/)) {
+          if(getCurrentDJ().id != me.id && !downVoteButton.css("background-image").match(/Selected/)) {
             downVoteButton.click();
             if(!silent) { API.sendChat("BOO!"); }
             currentSongThumbed = false;
@@ -312,6 +320,7 @@ window.RuB = new (function() {
               errorLog.push("Command: "+com);
               errorLog.push("Parameters: "+params.join(", "));
               errorLog.push(e.name + ": "+e.message);
+              errorLog.push("-------------------------------")
               API.sendChat("Well, that didn't work...");
             }
           } else {
