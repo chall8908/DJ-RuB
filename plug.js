@@ -318,7 +318,7 @@ window.RuB = new (function() {
               }
             } catch(e) {
               errorLog.push("Command: "+com);
-              errorLog.push("Parameters: "+params.join(", "));
+              errorLog.push("Parameters: "+JSON.stringify(params));
               errorLog.push(e.name + ": "+e.message);
               errorLog.push("-------------------------------")
               API.sendChat("Well, that didn't work...");
