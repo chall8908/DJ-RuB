@@ -107,7 +107,7 @@ def setup
 end
 
 begin
-  Daemons.run_proc("DJ-RuB") do
+  Daemons.run_proc("bot", dir_mode: :script, log_dir: "store", backtrace: true, log_output: true) do
     Headless.ly do
       loop do
           setup unless @running

@@ -60,7 +60,8 @@ window.RuB = new (function() {
       onDeck = false,
       currentDJ = API.getDJs()[0],
       djButton = $("#button-dj-play"),
-      currentSongThumbed = null,
+      upVoteButton = $("#button-vote-positive"),
+      downVoteButton = $("#button-vote-negative"),
       deadAirCounter = 0,
       errorLog = [],
       authorizedUsers = [],
@@ -164,18 +165,17 @@ window.RuB = new (function() {
          * "woots" the current song
          */
         woot : function(user, silent) {
-          if(currentDJ != me && currentSongThumbed !== true) {
-            $("#button-vote-positive").click();
+          if(currentDJ.id != me.id && !upVoteButton.css("background-image").match(/Selected/)) {
+            upVoteButton.click();
             if(!silent) { API.sendChat("WOOHOO!"); }
-            currentSongThumbed = true;
           }
         },
         /**
          * "mehs" the current song
          */
         meh : function(user, silent) {
-          if(currentDJ != me && currentSongThumbed !== false) {
-            $("#button-vote-negative").click();
+          if(currentDJ.id != me.id && !downVoteButton.css("background-image").match(/Selected/)) {
+            downVoteButton.click();
             if(!silent) { API.sendChat("BOO!"); }
             currentSongThumbed = false;
           }
@@ -282,42 +282,55 @@ window.RuB = new (function() {
         }
       },
       aliases = {
-        auth      : commands.authorizeUser,
         deauth    : commands.deauthorizeUser,
+        auth      : commands.authorizeUser,
         partyTime : commands.startPlaying,
         gtfo      : commands.removeDJ,
         add       : commands.addSong,
+        nextUp    : commands.upNext,
         "?"       : commands.help
       };
 
   $.extend(commands, aliases);
 
   API.addEventListener(API.CHAT, function(data) {
-    if(data.type == "message") {
-      if(data.message.match(options.commandChar)) {
-        if(authorizedUser(data.fromID)) {
-          var params = data.message.replace(options.commandChar, "").split(" "),
-              com = params.shift();
+    switch(data.type) {
+      case "message":
+        if(data.message.match(options.commandChar)) {
+          if(authorizedUser(data.fromID)) {
+            var params = data.message.replace(options.commandChar, "").split(" "),
+                com = params.shift();
 
-          params.unshift(API.getUser(data.fromID));
-          try {
-            if(typeof(commands[com]) == "undefined") {
-              API.sendChat("Er... what?  Try !help");
-            } else {
-              commands[com].apply(RuB, params);
+            params.unshift(API.getUser(data.fromID));
+            try {
+              if(typeof(commands[com]) == "undefined") {
+                API.sendChat("Er... what?  Try !help");
+              } else {
+                commands[com].apply(RuB, params);
+              }
+            } catch(e) {
+              errorLog.push("Command: "+com);
+              errorLog.push("Parameters: "+params.join(", "));
+              errorLog.push(e.name + ": "+e.message);
+              API.sendChat("Well, that didn't work...");
             }
-          } catch(e) {
-            errorLog.push("Command: "+com);
-            errorLog.push("Parameters: "+params.join(", "));
-            errorLog.push(e.name + ": "+e.message);
-            API.sendChat("Well, that didn't work...");
+          } else {
+            API.sendChat("Sorry, you're not on the list, @"+data.from+".");
           }
-        } else {
-          API.sendChat("Sorry, you're not on the list, @"+data.from+".");
+        } else if(data.message.match(/^@DJ-RuB/)) {
+          API.sendChat("@"+data.from+" Please direct all queries to @Vel");
         }
-      } else if(data.message.match(/^@DJ-RuB/)) {
-        API.sendChat("@"+data.from+" Please direct all queries to @Vel");
-      }
+        break;
+
+      case "system":
+        var message = data.message;
+        if(message.match(/changed their name to/)) {
+          if(message.match(/^User-/) && message.split("User-").length < 3) {
+            var newName = message.split("changed their name to").pop();
+            API.sendChat("That name is, at least, 20% cooler, @"+newName+".");
+          }
+        }
+        break;
     }
   });
 
@@ -348,10 +361,10 @@ window.RuB = new (function() {
   API.addEventListener(API.USER_JOIN, function(user) {
     if(user.username.match(/^User-/)) {
       API.sendChat("Hello, @"+user.username+".  You might want to change your name.  Default names are uncool.");
-    } else if(user.username != me.username) {
+    } else if(user.id != me.id) {
       API.sendChat("Welcome to Fraction Radio, @"+user.username+".");
     } else {
-      API.sendChat("DJ-RuB is in the house!");
+      API.sendChat("DJ RuB is in the house!");
       Playback.stop();
     }
   });
