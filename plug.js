@@ -176,7 +176,7 @@ window.RuB = new (function() {
          * "woots" the current song
          */
         woot : function(user, silent) {
-          if(getCurrentDJ().id != me.id && !upVoteButton.css("background-image").match(/Selected/)) {
+          if(getCurrentDJ().id != me.id && !upVoteButton.css("background-image").match(/Selected/) || silent == "force") {
             upVoteButton.click();
             if(!silent) { API.sendChat("WOOHOO!"); }
           }
