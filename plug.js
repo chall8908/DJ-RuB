@@ -78,6 +78,9 @@ window.RuB = new (function() {
         showHeartbeat   : false
       },
       commands = {
+        version : function(user) {
+          API.sendChat("plug.js version - 1.0.0");
+        },
         /**
          * Tells RuB to display her heartbeat
          */
@@ -275,14 +278,16 @@ window.RuB = new (function() {
          * Display a list of commands
          */
         help : function(user) {
-          var keys = Object.keys(commands);
+          var commands = ["version", "level", "rave", "chill", "upNext", "nextUp", "woot", "meh", "help", "?"];
+
           API.sendChat("Available commands for you are:");
+
           if(ensureAdmin(user, true)) {
-            while(keys.length) {
-              API.sendChat(keys.splice(0,10).join(", "));
-            }
-          } else {
-            API.sendChat("woot, meh, help, ?");
+            commands = Object.keys(commands);
+          }
+
+          while(commands.length) {
+            API.sendChat(commands.splice(0,10).join(", "));
           }
         },
         level : function(user) {

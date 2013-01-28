@@ -110,31 +110,31 @@ begin
   Daemons.run_proc("bot", dir_mode: :script, log_dir: "store", backtrace: true, log_output: true) do
     Headless.ly do
       loop do
-          setup unless @running
-          begin
-            @browser.wait_while do
-              sill_alive = nil
-              begin
-                still_alive = @browser.window.exists?
+        setup unless @running
+        begin
+          @browser.wait_while do
+            sill_alive = nil
+            begin
+              still_alive = @browser.window.exists?
 
-              #this seems kinda hacky, but it works
-              rescue
-                still_alive = false
-              end
-
-              still_alive
+            #this seems kinda hacky, but it works
+            rescue
+              still_alive = false
             end
-            #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
-            @running = false
 
-          rescue Watir::Wait::TimeoutError
-            if @js_loaded
-              @browser.execute_script("RuB.heartbeat();")
-              save_song_info @browser.execute_script("return RuB.nowPlaying();")
-              save_authorized_users @browser.execute_script("return RuB.getAuthorizedUsers();")
-            end
-            @running = true
+            still_alive
           end
+          #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
+          @running = false
+
+        rescue Watir::Wait::TimeoutError
+          if @js_loaded
+            @browser.execute_script("RuB.heartbeat();")
+            save_song_info @browser.execute_script("return RuB.nowPlaying();")
+            save_authorized_users @browser.execute_script("return RuB.getAuthorizedUsers();")
+          end
+          @running = true
+        end
       end
     end
   end

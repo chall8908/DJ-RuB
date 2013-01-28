@@ -3,6 +3,10 @@
  */
 
 (function() {
+  if(window.autoWootLoaded) {
+    return;
+  }
+
   var djButton        = $("#button-dj-play"),
       waitListButton  = $('#button-dj-waitlist-join'),
       me              = API.getSelf(),
@@ -14,14 +18,34 @@
       currentAvi      = 0,
       defaultAvi      = me.avatarID;
 
-  (function() {
+  // Override default API.waitListJoin method
+  var __waitListJoin = API.waitListJoin;
+  API.waitListJoin = function() {
+    if(djButton.is(":visible")) {
+      djButton.click();
+      onWaitList = false;
+      onDeck = true;
+    } else if(!onWaitList && !onDeck) {
+      __waitListJoin();
+      onWaitList = true;
+      onDeck = false;
+    }
+  }
+
+  function determineUsableAvatars() {
     var totalPoints = me.curatorPoints + me.djPoints + me.listenerPoints + 1;
     $.each(AvatarOverlay.getOriginalSet(), function(i, aviSet) {
       if(aviSet.required <= totalPoints) {
         avatars = avatars.concat(aviSet.avatars);
       }
     });
-  })();
+  }
+
+  function wootSong(dj) {
+    if(dj === true || dj.id != me.id) {
+      $("#button-vote-positive").click();
+    }
+  }
 
   function activateRaveMode() {
     clearInterval(raveInt);
@@ -39,23 +63,11 @@
     new UserChangeAvatarService(defaultAvi);
   }
 
-  var __waitListJoin = API.waitListJoin;
-  API.waitListJoin = function() {
-    if(djButton.is(":visible")) {
-      djButton.click();
-      onWaitList = false;
-      onDeck = true;
-    } else if(!onWaitList && !onDeck) {
-      __waitListJoin();
-      onWaitList = true;
-      onDeck = false;
-    }
-  }
+  determineUsableAvatars();
+  wootSong(true);
 
   API.addEventListener(API.DJ_ADVANCE, function(data) {
-    if(data.dj.id != me.id) {
-      $("#button-vote-positive").click();
-    }
+    wootSong(data.dj);
   });
 
   API.addEventListener(API.DJ_UPDATE, function(djs) {
@@ -97,4 +109,6 @@
       }
     }
   });
+
+  window.autoWootLoaded = true;
 })();
