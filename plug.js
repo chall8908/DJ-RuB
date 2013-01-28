@@ -278,16 +278,16 @@ window.RuB = new (function() {
          * Display a list of commands
          */
         help : function(user) {
-          var commands = ["version", "level", "rave", "chill", "upNext", "nextUp", "woot", "meh", "help", "?"];
+          var availCommands = ["version", "level", "rave", "chill", "upNext", "nextUp", "woot", "meh", "help", "?"];
 
           API.sendChat("Available commands for you are:");
 
           if(ensureAdmin(user, true)) {
-            commands = Object.keys(commands);
+            availCommands = Object.keys(commands);
           }
 
-          while(commands.length) {
-            API.sendChat(commands.splice(0,10).join(", "));
+          while(availCommands.length) {
+            API.sendChat(availCommands.splice(0,10).join(", "));
           }
         },
         level : function(user) {
