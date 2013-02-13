@@ -122,7 +122,7 @@ begin
             begin
               still_alive = @browser.exists?
               # check for session end alert
-              if alert = @browser.alert && alert.exists?
+              if (alert = @browser.alert) && alert.exists?
                 log "#{alert.text}"
                 alert.ok
                 still_alive = false
@@ -131,7 +131,7 @@ begin
             #this seems kinda hacky, but it works
             rescue Exception => e
               raise e if e.message == "exit"
-              
+
               log e
               still_alive = false
             end
