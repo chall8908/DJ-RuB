@@ -130,6 +130,8 @@ begin
 
             #this seems kinda hacky, but it works
             rescue Exception => e
+              raise e if e.message == "exit"
+              
               log e
               still_alive = false
             end
