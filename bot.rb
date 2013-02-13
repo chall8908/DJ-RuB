@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 require 'rubygems'
 require 'daemons'
 require 'yaml'
@@ -20,22 +18,22 @@ def log(entry)
 
   File.new(@log_file, "w") unless File.exists? @log_file
 
-  unless File.size(@log_file) < max_log_size
-    File.rename @log_file, @log_file+".#{Time.now}"
+  # unless File.size(@log_file) < max_log_size
+  #   File.rename @log_file, @log_file+".#{Time.now}"
 
-    # Remove old logfiles
-    log_files = Dir.entries(Dir.pwd)
-                .select { |v| v.match(/bot\.log\./) }
-                .sort {|a, b|
-                  a_time = Time.at a.split(".").last.to_i
-                  b_time = Time.at b.split(".").last.to_i
+  #   # Remove old logfiles
+  #   log_files = Dir.entries(Dir.pwd)
+  #               .select { |v| v.match(/bot\.log\./) }
+  #               .sort {|a, b|
+  #                 a_time = Time.at a.split(".").last.to_i
+  #                 b_time = Time.at b.split(".").last.to_i
 
-                  a_time <=> b_time
-                }
-    while log_files.length > 4 do
-      File.delete log_files.pop
-    end
-  end
+  #                 a_time <=> b_time
+  #               }
+  #   while log_files.length > 4 do
+  #     File.delete log_files.pop
+  #   end
+  # end
 
   File.open(@log_file, "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
 end
@@ -89,51 +87,67 @@ def setup
   @browser = Watir::Browser.start 'http://plug.dj/fractionradio/'
   google_button = @browser.div(id: "google")
   if google_button.exists?
+    log "logging in..."
     google_button.click
     @browser.text_field(id: "Email").set @options["email"]
     @browser.text_field(id: "Passwd").set @options["pass"]
     @browser.button(id: "signIn").click
     @browser.goto 'http://plug.dj/fractionradio/'
   end
+
+  log "loading room..."
+
   begin
+    log "injecting javascript..."
     @browser.execute_script @js
     @js_loaded = true
-    @browser.execute_script "RuB.setAuthorizedUsers(#{@options["users"].to_json})"
+    log "setting authorized users..."
+    @browser.execute_script "RuB.setAuthorizedUsers(#{@options["users"]})"
   rescue Selenium::WebDriver::Error::JavascriptError => e
     log e
+    @js_loaded = false
   end
 
   log "setup complete!"
 end
 
 begin
-  Daemons.run_proc("bot", dir_mode: :script, log_dir: "store", backtrace: true, log_output: true, monitor: true) do
+  Daemons.run_proc("bot", dir_mode: :script, dir: "store", log_dir: "store", backtrace: true, log_output: true, monitor: true) do
     Headless.ly do
       loop do
         setup unless @running
         begin
-          @browser.wait_while do
-            sill_alive = nil
+          Watir::Wait.while do
+            still_alive = nil
             begin
-              still_alive = @browser.window.exists?
+              still_alive = @browser.exists?
+              # check for session end alert
+              if alert = @browser.alert.exists?
+                log "#{alert.text}"
+                alert.ok
+                still_alive = false
+              end
 
             #this seems kinda hacky, but it works
-            rescue
+            rescue Exception => e
+              log e
               still_alive = false
             end
 
             still_alive
           end
+          p "browser is dead.  restarting..."
           #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
           @running = false
 
         rescue Watir::Wait::TimeoutError
-          if @js_loaded
-            @browser.execute_script("RuB.heartbeat();")
-            save_song_info @browser.execute_script("return RuB.nowPlaying();")
-            save_authorized_users @browser.execute_script("return RuB.getAuthorizedUsers();")
-          end
           @running = true
+          if @js_loaded
+            @browser.execute_script "RuB.heartbeat();"
+            save_song_info @browser.execute_script "return RuB.nowPlaying();"
+            save_authorized_users @browser.execute_script "return RuB.getAuthorizedUsers();"
+            @running = !@browser.execute_script("return RuB.restartRequested();")
+          end
         end
       end
     end

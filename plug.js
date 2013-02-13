@@ -65,6 +65,7 @@ window.RuB = new (function() {
   }
 
   var me = API.getSelf(),
+      restartRequested = false,
       onDeck = false,
       currentDJ = API.getDJs()[0],
       djButton = $("#button-dj-play"),
@@ -292,6 +293,12 @@ window.RuB = new (function() {
         },
         level : function(user) {
           API.sendChat("@"+user.username+" your permission level is "+user.permission+".");
+        },
+        restart : function(user) {
+          if(ensureAdmin(user)) {
+            restartRequested = true;
+            API.sendChat("Request logged.  Restarting on next heartbeat.");
+          }
         }
       },
       aliases = {
@@ -414,5 +421,9 @@ window.RuB = new (function() {
   this.getAuthorizedUsers = function() {
     return authorizedUsers;
   };
+
+  this.restartRequested = function() {
+    return restartRequested;
+  }
 
 })();
