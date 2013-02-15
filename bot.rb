@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'rubygems'
 require 'daemons'
 require 'yaml'
@@ -18,22 +20,22 @@ def log(entry)
 
   File.new(@log_file, "w") unless File.exists? @log_file
 
-  # unless File.size(@log_file) < max_log_size
-  #   File.rename @log_file, @log_file+".#{Time.now}"
+  unless File.size(@log_file) < max_log_size
+    File.rename @log_file, @log_file+".#{Time.now}"
 
-  #   # Remove old logfiles
-  #   log_files = Dir.entries(Dir.pwd)
-  #               .select { |v| v.match(/bot\.log\./) }
-  #               .sort {|a, b|
-  #                 a_time = Time.at a.split(".").last.to_i
-  #                 b_time = Time.at b.split(".").last.to_i
+    # Remove old logfiles
+    log_files = Dir.entries(Dir.pwd)
+                .select { |v| v.match(/bot\.log\./) }
+                .sort {|a, b|
+                  a_time = Time.at a.split(".").last.to_i
+                  b_time = Time.at b.split(".").last.to_i
 
-  #                 a_time <=> b_time
-  #               }
-  #   while log_files.length > 4 do
-  #     File.delete log_files.pop
-  #   end
-  # end
+                  a_time <=> b_time
+                }
+    while log_files.length > 4 do
+      File.delete log_files.pop
+    end
+  end
 
   File.open(@log_file, "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
 end
@@ -84,7 +86,9 @@ end
 def setup
   log "setting up..."
 
-  @browser = Watir::Browser.start 'http://plug.dj/fractionradio/'
+  @browser = Watir::Browser.start unless @browser && @browser.exists?
+
+  @browser.goto 'http://plug.dj/fractionradio/'
   google_button = @browser.div(id: "google")
   if google_button.exists?
     log "logging in..."
@@ -122,7 +126,7 @@ begin
             begin
               still_alive = @browser.exists?
               # check for session end alert
-              if (alert = @browser.alert) && alert.exists?
+              if still_alive && (alert = @browser.alert) && alert.exists?
                 log "#{alert.text}"
                 alert.ok
                 still_alive = false
@@ -156,4 +160,5 @@ begin
   end
 rescue Exception => e
   log e
+  @browser.close if @browser && @browser.exists?
 end
