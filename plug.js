@@ -49,6 +49,23 @@ window.RuB = new (function() {
     return onDeck;
   }
 
+  function DJBoothFull() {
+    return djs.length > 4;
+  }
+
+  function WaitListEmpty() {
+    return API.getWaitList().length == 0;
+  }
+
+  function booth(action) {
+    socket.execute("booth."+action, fakeService);
+  }
+
+  function vote(action) {
+    var type = (action === "up" ? true, false);
+    socket.execute("room.cast", fakeService, type, Models.room.data.historyID, true);
+  }
+
   /**
    * Wrapper function for getting the current DJ
    * Should always return a user
@@ -68,12 +85,12 @@ window.RuB = new (function() {
       restartRequested = false,
       onDeck = false,
       currentDJ = API.getDJs()[0],
-      djButton = $("#button-dj-play"),
       upVoteButton = $("#button-vote-positive"),
       downVoteButton = $("#button-vote-negative"),
       deadAirCounter = 0,
       errorLog = [],
       authorizedUsers = [],
+      fakeService = { onResult: &.noop },
       options = {
         commandChar     : /^!/,
         showHeartbeat   : false
@@ -180,7 +197,7 @@ window.RuB = new (function() {
          */
         woot : function(user, silent) {
           if(getCurrentDJ().id != me.id && !upVoteButton.css("background-image").match(/Selected/) || silent == "force") {
-            upVoteButton.click();
+            vote('up');
             if(silent !== true) { API.sendChat("WOOHOO!"); }
           }
         },
@@ -189,9 +206,10 @@ window.RuB = new (function() {
          */
         meh : function(user, silent) {
           if(getCurrentDJ().id != me.id && !downVoteButton.css("background-image").match(/Selected/)) {
-            downVoteButton.click();
+
+            vote('down');
+
             if(silent !== true) { API.sendChat("BOO!"); }
-            currentSongThumbed = false;
           }
         },
         /**
@@ -199,9 +217,7 @@ window.RuB = new (function() {
          */
         addSong : function(user) {
           if(ensureAdmin(user)) {
-            API.sendChat("Sorry, I can't do that yet."); return;
-            $("#button-add-this").click();
-            $("#pop-menu-container .pop-menu-row-label").eq(0).click();
+            socket.execute("room.curate", fakeService, Models.playlist.selectedPlaylistID, Models.room.data.historyID);
           }
         },
         /**
@@ -211,13 +227,14 @@ window.RuB = new (function() {
           if(ensureAdmin(user)) {
             if(!onDeck) {
               onDeck = true;
-              if(djButton.is(":visible")) {
-                djButton.click();
+              if(!DJBoothFull()) {
+                booth("join");
                 API.sendChat("It's not a party unless DJ RuB is on deck!");
-              } else {
-                API.sendChat("Maybe later.  Looks a little full right now.");
+                return;
               }
             }
+
+            API.sendChat("Maybe later.  Looks a little full right now.");
           }
         },
         /**
@@ -227,8 +244,7 @@ window.RuB = new (function() {
           if(ensureAdmin(user)) {
             if(onDeck) {
               onDeck = false;
-              $("#button-dj-quit").click();
-              $(".dialog-submit-button").click();
+              booth("leave");
               API.sendChat("Guess the party's over gents.");
             }
           }
@@ -374,8 +390,8 @@ window.RuB = new (function() {
   });
 
   API.addEventListener(API.DJ_UPDATE, function(djs) {
-    if(djs.length < 5 && API.getWaitList().length == 0 && onDeck) {
-      djButton.click();
+    if(!DJBoothFull() && WaitListEmpty() && onDeck) {
+      booth('join');
     }
   });
 
