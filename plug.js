@@ -1,96 +1,15 @@
 window.RuB = new (function() {
 
-  function includes(arr, val) {
-    for(var i = 0; i < arr.length; i++) {
-      if(arr[i] == val) {
-        return i;
-      }
-    }
-    return false;
-  }
-
-  function ensureAdmin(user, silent) {
-    var admin = user.permission > Models.user.BOUNCER || user.owner;
-    if(!admin && !silent) {
-      API.sendChat("I'm afraid I can't let you do that, @"+user.username);
-    }
-    return admin;
-  }
-
-  function findUserByName(name) {
-    var users = API.getUsers(),
-        user  = false;
-
-    $.each(users, function(i, u) {
-      if(u.username == name) {
-        user = u;
-        return false;
-      }
-    });
-
-    if(!user && name) {
-      API.sendChat("I don't know who that is.");
-    }
-
-    return user;
-  }
-
-  function isDJing(user) {
-    var DJs = API.getDJs(),
-        onDeck = false;
-
-    $.each(DJs, function(i, dj) {
-      if(dj.id == user.id) {
-        onDeck = true;
-        return false;
-      }
-    });
-
-    return onDeck;
-  }
-
-  function DJBoothFull() {
-    return djs.length > 4;
-  }
-
-  function WaitListEmpty() {
-    return API.getWaitList().length == 0;
-  }
-
-  function booth(action) {
-    socket.execute("booth."+action, fakeService);
-  }
-
-  function vote(action) {
-    var type = (action === "up" ? true, false);
-    socket.execute("room.cast", fakeService, type, Models.room.data.historyID, true);
-  }
-
-  /**
-   * Wrapper function for getting the current DJ
-   * Should always return a user
-   */
-  function getCurrentDJ() {
-    return currentDJ || (currentDJ = API.getDJs()[0]);
-  }
-
-  /**
-   * Checks if the user is authorized to perform commands
-   */
-  function authorizedUser(id) {
-    return includes(authorizedUsers, id) !== false;
-  }
-
   var me = API.getSelf(),
       restartRequested = false,
-      onDeck = false,
+      onDeck = isDJing(me),
       currentDJ = API.getDJs()[0],
       upVoteButton = $("#button-vote-positive"),
       downVoteButton = $("#button-vote-negative"),
       deadAirCounter = 0,
       errorLog = [],
       authorizedUsers = [],
-      fakeService = { onResult: &.noop },
+      fakeService = { onResult: $.noop },
       options = {
         commandChar     : /^!/,
         showHeartbeat   : false
@@ -336,6 +255,87 @@ window.RuB = new (function() {
 
   $.extend(commands, aliases);
 
+  function includes(arr, val) {
+    for(var i = 0; i < arr.length; i++) {
+      if(arr[i] == val) {
+        return i;
+      }
+    }
+    return false;
+  }
+
+  function ensureAdmin(user, silent) {
+    var admin = user.permission > Models.user.BOUNCER || user.owner;
+    if(!admin && !silent) {
+      API.sendChat("I'm afraid I can't let you do that, @"+user.username);
+    }
+    return admin;
+  }
+
+  function findUserByName(name) {
+    var users = API.getUsers(),
+        user  = false;
+
+    $.each(users, function(i, u) {
+      if(u.username == name) {
+        user = u;
+        return false;
+      }
+    });
+
+    if(!user && name) {
+      API.sendChat("I don't know who that is.");
+    }
+
+    return user;
+  }
+
+  function isDJing(user) {
+    var DJs = API.getDJs(),
+        onDeck = false;
+
+    $.each(DJs, function(i, dj) {
+      if(dj.id == user.id) {
+        onDeck = true;
+        return false;
+      }
+    });
+
+    return onDeck;
+  }
+
+  function DJBoothFull() {
+    return API.getDJs().length > 4;
+  }
+
+  function WaitListEmpty() {
+    return API.getWaitList().length == 0;
+  }
+
+  function booth(action) {
+    socket.execute("booth."+action, fakeService);
+  }
+
+  function vote(action) {
+    var type = (action === "up" ? true : false);
+    socket.execute("room.cast", fakeService, type, Models.room.data.historyID, true);
+  }
+
+  /**
+   * Wrapper function for getting the current DJ
+   * Should always return a user
+   */
+  function getCurrentDJ() {
+    return currentDJ || (currentDJ = API.getDJs()[0]);
+  }
+
+  /**
+   * Checks if the user is authorized to perform commands
+   */
+  function authorizedUser(id) {
+    return includes(authorizedUsers, id) !== false;
+  }
+
   API.addEventListener(API.CHAT, function(data) {
     switch(data.type) {
       case "message":
@@ -389,7 +389,7 @@ window.RuB = new (function() {
     Playback.stop();
   });
 
-  API.addEventListener(API.DJ_UPDATE, function(djs) {
+  API.addEventListener(API.DJ_UPDATE, function() {
     if(!DJBoothFull() && WaitListEmpty() && onDeck) {
       booth('join');
     }
