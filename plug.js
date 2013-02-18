@@ -228,6 +228,7 @@ window.RuB = new (function() {
             if(onDeck) {
               onDeck = false;
               $("#button-dj-quit").click();
+              $(".dialog-submit-button").click();
               API.sendChat("Guess the party's over gents.");
             }
           }
