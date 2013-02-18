@@ -171,6 +171,8 @@ window.RuB = new (function() {
         upNext : function(user) {
           if(onDeck) {
             API.sendChat("Up next from DJ RuB: "+$("#up-next").text());
+          } else {
+            API.sendChat("I'm not playing anything right now.");
           }
         },
         /**
@@ -179,7 +181,7 @@ window.RuB = new (function() {
         woot : function(user, silent) {
           if(getCurrentDJ().id != me.id && !upVoteButton.css("background-image").match(/Selected/) || silent == "force") {
             upVoteButton.click();
-            if(!silent) { API.sendChat("WOOHOO!"); }
+            if(silent !== true) { API.sendChat("WOOHOO!"); }
           }
         },
         /**
@@ -188,7 +190,7 @@ window.RuB = new (function() {
         meh : function(user, silent) {
           if(getCurrentDJ().id != me.id && !downVoteButton.css("background-image").match(/Selected/)) {
             downVoteButton.click();
-            if(!silent) { API.sendChat("BOO!"); }
+            if(silent !== true) { API.sendChat("BOO!"); }
             currentSongThumbed = false;
           }
         },
@@ -207,12 +209,14 @@ window.RuB = new (function() {
          */
         startPlaying : function(user) {
           if(ensureAdmin(user)) {
-            if(djButton.is(":visible") && !onDeck) {
+            if(!onDeck) {
               onDeck = true;
-              djButton.click();
-              API.sendChat("It's not a party unless DJ RuB is on deck!");
-            } else {
-              API.sendChat("Maybe later.  Looks a little full right now.")
+              if(djButton.is(":visible")) {
+                djButton.click();
+                API.sendChat("It's not a party unless DJ RuB is on deck!");
+              } else {
+                API.sendChat("Maybe later.  Looks a little full right now.");
+              }
             }
           }
         },
@@ -233,6 +237,8 @@ window.RuB = new (function() {
           if(deadAirCounter > (API.getAudience().length + API.getDJs().length - 2)) {
             API.moderateForceSkip();
             API.sendChat("Sorry, bro.  That shit was busted.");
+          } else {
+            API.sendChat("Acknowledged, HQ.");
           }
         },
         /**

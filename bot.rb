@@ -86,7 +86,7 @@ end
 def setup
   log "setting up..."
 
-  @browser = Watir::Browser.start unless @browser && @browser.exists?
+  @browser = Watir::Browser.new unless @browser && @browser.exists?
 
   @browser.goto 'http://plug.dj/fractionradio/'
   google_button = @browser.div(id: "google")
