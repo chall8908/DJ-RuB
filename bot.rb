@@ -8,6 +8,7 @@ require 'headless'
 require 'date'
 
 @running = false
+@room = 'http://plug.dj/fractionradio/'
 @options = YAML.load_file(File.join(Dir.pwd, "store", "secrets.yml"))
 js_file = File.open(File.join(Dir.pwd, "plug.js"))
 @js = js_file.read
@@ -88,7 +89,7 @@ def setup
 
   @browser = Watir::Browser.new unless @browser && @browser.exists?
 
-  @browser.goto 'http://plug.dj/fractionradio/'
+  @browser.goto @room
   google_button = @browser.div(id: "google")
   if google_button.exists?
     log "logging in..."
@@ -96,10 +97,12 @@ def setup
     @browser.text_field(id: "Email").set @options["email"]
     @browser.text_field(id: "Passwd").set @options["pass"]
     @browser.button(id: "signIn").click
-    @browser.goto 'http://plug.dj/fractionradio/'
+    @browser.wait
+    @browser.goto @room
   end
 
   log "loading room..."
+  @browser.wait #waits until the DOMready event
 
   begin
     log "injecting javascript..."
@@ -110,6 +113,16 @@ def setup
   rescue Selenium::WebDriver::Error::JavascriptError => e
     log e
     @js_loaded = false
+    if e.message.match("API is not defined")
+      if @browser.url != @room
+        @browser.goto @room
+        @browser.wait
+      else
+        @browser.execute_script "delete window.RuB"
+      end
+
+      retry
+    end
   end
 
   log "setup complete!"
