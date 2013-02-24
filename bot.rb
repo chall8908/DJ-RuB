@@ -7,22 +7,24 @@ require 'watir-webdriver'
 require 'headless'
 require 'date'
 
+#files and such
+@file = {
+          log: File.join(Dir.pwd, "store", "bot.log"),
+          song: File.join(Dir.pwd, "store", "song.yml"),
+          secrets: File.join(Dir.pwd, "store", "secrets.yml")
+        }
+
 @running = false
-@room = 'http://plug.dj/fractionradio/'
-@options = YAML.load_file(File.join(Dir.pwd, "store", "secrets.yml"))
-js_file = File.open(File.join(Dir.pwd, "plug.js"))
-@js = js_file.read
-js_file.close
-js_file = nil
-@log_file = File.join(Dir.pwd, "store", "bot.log")
+@options = YAML.load_file(@file[:secrets])
+@js = File.read(File.join(Dir.pwd, "plug.js"))
 
 def log(entry)
   max_log_size = 5242880 # 5MB
 
-  File.new(@log_file, "w") unless File.exists? @log_file
+  File.new(@file[:log], "w") unless File.exists? @file[:log]
 
-  unless File.size(@log_file) < max_log_size
-    File.rename @log_file, @log_file+".#{Time.now}"
+  unless File.size(@file[:log]) < max_log_size
+    File.rename @file[:log], @file[:log]+".#{Time.now}"
 
     # Remove old logfiles
     log_files = Dir.entries(Dir.pwd)
@@ -38,13 +40,13 @@ def log(entry)
     end
   end
 
-  File.open(@log_file, "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
+  File.open(@file[:log], "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
 end
 
 def save_song_info(song)
   @current_song = song unless @current_song
   begin
-    File.open(File.join(Dir.pwd, "store", "song.yml"), "w+") { |f| f.write(song.to_yaml) }
+    File.open(@file[:song], "w+") { |f| f.write(song.to_yaml) }
   rescue Exception => e
     retry if fix_dir?
     log "Unable to save current song."
@@ -60,9 +62,11 @@ def save_authorized_users users
   if @options["users"].sort != users.sort
     @options["users"] = users
     begin
-      File.open(File.join(Dir.pwd, "store", "secrets.yml"), "w+") { |f| f.write(@options.to_yaml) }
-    rescue
-      retry if fix_dir?
+      File.open(@file[:secrets], "w+") { |f| f.write(@options.to_yaml) }
+    rescue Exception => e
+    retry if fix_dir?
+      log "Unable to save authorized users."
+      log e
     end
   end
 end
@@ -81,10 +85,11 @@ end
 
 def setup
   log "setting up..."
+  room = 'http://plug.dj/fractionradio/'
 
   @browser = Watir::Browser.new unless @browser && @browser.exists?
 
-  @browser.goto @room
+  @browser.goto room
   google_button = @browser.div(id: "google")
   if google_button.exists?
     log "logging in..."
@@ -93,7 +98,7 @@ def setup
     @browser.text_field(id: "Passwd").set @options["pass"]
     @browser.button(id: "signIn").click
     @browser.wait
-    @browser.goto @room
+    @browser.goto room
   end
 
   log "loading room..."
@@ -109,8 +114,8 @@ def setup
     log e
     @js_loaded = false
     if e.message.match("API is not defined")
-      if @browser.url != @room
-        @browser.goto @room
+      if @browser.url != room
+        @browser.goto room
         @browser.wait
       else
         @browser.execute_script "delete window.RuB"
