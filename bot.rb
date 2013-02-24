@@ -50,7 +50,7 @@ def save_song_info(song)
   rescue Exception => e
     retry if fix_dir?
     log "Unable to save current song."
-    log e
+    log e.message
   end
   if @current_song && @current_song.id != song.id
     @current_song = song
@@ -66,7 +66,7 @@ def save_authorized_users users
     rescue Exception => e
     retry if fix_dir?
       log "Unable to save authorized users."
-      log e
+      log e.message
     end
   end
 end
@@ -111,7 +111,7 @@ def setup
     log "setting authorized users..."
     @browser.execute_script "RuB.setAuthorizedUsers(#{@options["users"]})"
   rescue Selenium::WebDriver::Error::JavascriptError => e
-    log e
+    log e.message
     @js_loaded = false
     if e.message.match("API is not defined")
       if @browser.url != room
@@ -150,7 +150,7 @@ begin
             rescue Exception => e
               raise e if e.message == "exit"
 
-              log e
+              log e.message
               still_alive = false
             end
 
@@ -172,6 +172,6 @@ begin
     end
   end
 rescue Exception => e
-  log e
+  log e.message
   @browser.close if @browser && @browser.exists?
 end
