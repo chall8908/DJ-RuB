@@ -126,6 +126,7 @@ def setup
   end
 
   log "setup complete!"
+  @running = true
 end
 
 begin
@@ -137,7 +138,7 @@ begin
           Watir::Wait.while do
             still_alive = nil
             begin
-              still_alive = @browser.exists?
+              still_alive = @browser.window.exists?
               # check for session end alert
               if still_alive && (alert = @browser.alert) && alert.exists?
                 log "#{alert.text}"
@@ -155,7 +156,7 @@ begin
 
             still_alive
           end
-          p "browser is dead.  restarting..."
+          log "browser is dead.  restarting..."
           #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
           @running = false
 
