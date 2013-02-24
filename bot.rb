@@ -39,22 +39,17 @@ def log(entry)
 end
 
 def save_song_info(song)
+  @current_song = song unless @current_song
   begin
     File.open(File.join(Dir.pwd, "store", "song.yml"), "w+") { |f| f.write(song.to_yaml) }
-  rescue
+  rescue Exception => e
     retry if fix_dir?
+    log "Unable to save current song."
+    log e
   end
-end
-
-def addSongToPlaylist(cid, currentSongID)
-  if cid == currentSongID
-    @browser.div(id: "button-add-this").click
-    @browser.wait_until do
-      @browser.div(class: "pop-menu").exists?
-    end
-    @browser.div(class: "pop-menu").li.click
-  else
-    @browser.execute_script("API.sendChat('Sorry, I missed adding that song.');")
+  if @current_song && @current_song.id != song.id
+    @current_song = song
+    log "Now Playing: #{@current_song.title} by #{@current_song.author}"
   end
 end
 
