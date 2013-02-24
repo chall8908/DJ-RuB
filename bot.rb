@@ -136,7 +136,7 @@ begin
         setup unless @running
         begin
           Watir::Wait.while do
-            still_alive = nil
+            still_alive = false
             begin
               still_alive = @browser.window.exists?
               # check for session end alert
@@ -161,7 +161,6 @@ begin
           @running = false
 
         rescue Watir::Wait::TimeoutError
-          @running = true
           if @js_loaded
             @browser.execute_script "RuB.heartbeat();"
             save_song_info @browser.execute_script "return RuB.nowPlaying();"
