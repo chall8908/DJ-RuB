@@ -9,6 +9,7 @@
 
   var djButton        = $("#button-dj-play"),
       waitListButton  = $('#button-dj-waitlist-join'),
+      fakeService     = { onResult: $.noop }
       me              = API.getSelf(),
       onWaitList      = false,
       onDeck          = false,

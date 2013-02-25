@@ -146,9 +146,7 @@ begin
               end
 
             #this seems kinda hacky, but it works
-            rescue Exception => e
-              raise e if e.message == "exit"
-
+            rescue StandardError => e
               log e
               still_alive = false
             end
