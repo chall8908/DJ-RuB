@@ -87,7 +87,7 @@ def setup
   log "setting up..."
   room = 'http://plug.dj/fractionradio/'
 
-  @browser = Watir::Browser.new profile: 'default' unless @browser && @browser.exists?
+  @browser = Watir::Browser.new :firefox, profile: 'default' unless @browser && @browser.exists?
 
   @browser.goto room
   google_button = @browser.div(id: "google")
