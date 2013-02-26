@@ -52,9 +52,9 @@ def save_song_info(song)
     log "Unable to save current song."
     log e
   end
-  if @current_song && @current_song.id != song.id
+  if @current_song && @current_song["id"] != song["id"]
     @current_song = song
-    log "Now Playing: #{@current_song.title} by #{@current_song.author}"
+    log "Now Playing: #{@current_song["title"]} by #{@current_song["author"]}"
   end
 end
 
