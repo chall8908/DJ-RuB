@@ -221,7 +221,7 @@ window.RuB = new (function() {
          * Display a list of commands
          */
         help : function(user) {
-          var availCommands = ["version", "level", "rave", "chill", "upNext", "nextUp", "woot", "meh", "help", "?"];
+          var availCommands = ["version", "level", "rave", "chill", "upNext", "nextUp", "deadAir", "woot", "meh", "help", "?"];
 
           API.sendChat("Available commands for you are:");
 
