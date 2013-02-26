@@ -49,23 +49,24 @@ def save_song_info(song)
     File.open(@file[:song], "w+") { |f| f.write(song.to_yaml) }
   rescue Exception => e
     retry if fix_dir?
-    log "Unable to save current song."
+    log "unable to save current song."
     log e
   end
   if @current_song && @current_song["id"] != song["id"]
     @current_song = song
-    log "Now Playing: #{@current_song["title"]} by #{@current_song["author"]}"
+    log "now playing: #{@current_song["title"]} by #{@current_song["author"]}"
   end
 end
 
 def save_authorized_users users
   if @options["users"].sort != users.sort
+    log "updating authorized users list"
     @options["users"] = users
     begin
       File.open(@file[:secrets], "w+") { |f| f.write(@options.to_yaml) }
     rescue Exception => e
     retry if fix_dir?
-      log "Unable to save authorized users."
+      log "unable to save authorized users."
       log e
     end
   end
@@ -75,7 +76,7 @@ end
 # @return [Boolean] true, if the directory was fixed.  false, if it didn't need to be fixed
 def fix_dir?
   if Dir.pwd.match(/(unreachable)/)
-    log "Directory unreachable.  Attempting to correct from #{Dir.pwd}."
+    log "directory unreachable.  attempting to correct from #{Dir.pwd}."
     Dir.chdir Dir.pwd.gsub(/\(unreachable\)/, "").gsub(/\/\//, "/")
     true
   else
@@ -124,6 +125,9 @@ def setup
       retry
     end
   end
+
+  log "loading last playing song"
+  @current_song = YAML.load_file(@file[:song])
 
   log "setup complete!"
   @running = true
