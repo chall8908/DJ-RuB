@@ -139,7 +139,7 @@ begin
       loop do
         setup unless @running
         begin
-          Watir::Wait.while do
+          Watir::Wait.while(5) do
             still_alive = false
             begin
               still_alive = @browser.window.exists?
