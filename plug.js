@@ -8,8 +8,9 @@ window.RuB = new (function() {
       downVoteButton = $("#button-vote-negative"),
       deadAirCounter = 0,
       errorLog = [],
+      consoleLog = [],
       authorizedUsers = [],
-      fakeService = { onResult: $.noop },
+      fakeService = { onResult: $.noop, onFailure: $.noop },
       options = {
         commandChar     : /^!/,
         showHeartbeat   : false
@@ -46,12 +47,32 @@ window.RuB = new (function() {
                 $.each(errorLog, function(i, error) {
                   API.sendChat(error);
                 });
+                errorLog = [];
               }, 2000);
             } else {
               API.sendChat("No errors reported, boss.");
             }
           }
          },
+         /**
+          *
+          */
+        showLog : function(user) {
+          if(ensureAdmin(user)) {
+            if(consoleLog.length) {
+              API.sendChat("It's about to get spammy in here.");
+              setTimeout(function() {
+                API.sendChat("Console log:");
+                $.each(consoleLog, function(i, entry) {
+                  API.sendChat(entry);
+                });
+                consoleLog = [];
+              }, 2000);
+            } else {
+              API.sendChat("Log's empty, boss.")
+            }
+          }
+        }
          authorizedUsers : function(user) {
           if(ensureAdmin(user)) {
             var message = "Authorized users:";
@@ -115,7 +136,7 @@ window.RuB = new (function() {
          * "woots" the current song
          */
         woot : function(user, silent) {
-          if(getCurrentDJ().id != me.id && !upVoteButton.css("background-image").match(/Selected/) || silent == "force") {
+          if(!upVoteButton.css("background-image").match(/Selected/) || silent == "force") {
             vote('up');
             if(silent !== true) { API.sendChat("WOOHOO!"); }
           }
@@ -124,7 +145,7 @@ window.RuB = new (function() {
          * "mehs" the current song
          */
         meh : function(user, silent) {
-          if(getCurrentDJ().id != me.id && !downVoteButton.css("background-image").match(/Selected/)) {
+          if(!downVoteButton.css("background-image").match(/Selected/) || silent == "force") {
 
             vote('down');
 
@@ -403,6 +424,12 @@ window.RuB = new (function() {
   });
 
   API.addEventListener(API.USER_JOIN, function(user) {
+    //this often gets fired and picked up by the bot as it joins, but, for some reason, some of its internals aren't set up properly
+    if(!me) {
+      me = API.getSelf();
+      onDeck = isDJing(me);
+    }
+
     if(user.username.match(/^User-/)) {
       API.sendChat("Hello, @"+user.username+".  You might want to change your name.  Default names are uncool.");
     } else if(user.id != me.id) {
