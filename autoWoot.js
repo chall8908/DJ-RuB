@@ -9,7 +9,7 @@
 
   var djButton        = $("#button-dj-play"),
       waitListButton  = $('#button-dj-waitlist-join'),
-      fakeService     = { onResult: $.noop }
+      fakeService     = { onResult: $.noop, onFailure: $.noop }
       me              = API.getSelf(),
       onWaitList      = false,
       onDeck          = false,
@@ -23,7 +23,7 @@
   var __waitListJoin = API.waitListJoin;
   API.waitListJoin = function() {
     if(djButton.is(":visible")) {
-      djButton.click();
+      socket.execute("booth.join", fakeService);
       onWaitList = false;
       onDeck = true;
     } else if(!onWaitList && !onDeck) {
@@ -43,9 +43,7 @@
   }
 
   function wootSong(dj) {
-    if(dj === true || dj.id != me.id) {
-      $("#button-vote-positive").click();
-    }
+    socket.execute("room.cast", fakeService, true, Models.room.data.historyID, true);
   }
 
   function activateRaveMode() {
