@@ -43,7 +43,9 @@
   }
 
   function wootSong(dj) {
-    socket.execute("room.cast", fakeService, true, Models.room.data.historyID, true);
+    if(dj.id != me.id){
+      socket.execute("room.cast", fakeService, true, Models.room.data.historyID, true);
+    }
   }
 
   function activateRaveMode() {
