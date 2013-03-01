@@ -150,9 +150,9 @@ begin
           conf.channels = ["#!", "#radio"]
         end
         
-        on :message do |m|
-          log m
-        end
+        # on :message do |m|
+        #   log m
+        # end
         
         on :join do |e|
           @log_channel = @bot.channels.select{ |chan| chan.name == "#radio" }.first if e.channel == "#radio"
