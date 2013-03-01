@@ -2,11 +2,7 @@
 
 require 'rubygems'
 require 'daemons'
-require 'yaml'
-require 'watir-webdriver'
-require 'headless'
 require 'cinch'
-require 'date'
 require './modules/plug_bot.rb'
 
 # Determines if the current directory is fucked up and fixes it if it is

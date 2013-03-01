@@ -2,6 +2,13 @@
 #
 # The Plug module contains everything necessary for operating the Plug dj bot
 module Plug
+  require 'rubygems'
+  require 'yaml'
+  require 'watir-webdriver'
+  require 'headless'
+  require 'date'
+  require 'cgi'
+
   class BrowserRunningError < StandardError
   end
 
@@ -41,7 +48,7 @@ module Plug
         end
       end
 
-      @@log_channel.msg(entry) unless @@log_channel.nil?
+      @@log_channel.msg(CGI.decodeHTML(entry)) unless @@log_channel.nil?
 
       File.open(@@log_file, "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
     end
