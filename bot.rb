@@ -7,20 +7,6 @@ require 'watir-webdriver'
 require 'headless'
 require 'cinch'
 require 'date'
-
-#files and such
-@file = {
-          log: File.join(Dir.pwd, "store", "bot.log"),
-          song: File.join(Dir.pwd, "store", "song.yml"),
-          secrets: File.join(Dir.pwd, "store", "secrets.yml")
-        }
-
-log Dir.pwd
-
-@browser_running = false
-@options = YAML.load_file(@file[:secrets])
-@js = File.read(File.join(Dir.pwd, "plug.js"))
-
 def log(entry)
   max_log_size = 5242880 # 5MB
 
@@ -138,6 +124,20 @@ def browser_setup
   log "setup complete!"
   @browser_running = true
 end
+
+#files and such
+@file = {
+          log: File.join(Dir.pwd, "store", "bot.log"),
+          song: File.join(Dir.pwd, "store", "song.yml"),
+          secrets: File.join(Dir.pwd, "store", "secrets.yml")
+        }
+
+@browser_running = false
+@options = YAML.load_file(@file[:secrets])
+@js = File.read(File.join(Dir.pwd, "plug.js"))
+
+
+log Dir.pwd
 
 begin
   Daemons.run_proc("bot", dir_mode: :script, dir: "store", log_dir: "store", backtrace: true, log_output: true, monitor: true) do
