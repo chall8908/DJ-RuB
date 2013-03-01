@@ -56,6 +56,7 @@ module Plug
             }
     JS = File.read(File.join(Dir.pwd, "plug.js"))
     OPTIONS = YAML.load_file(FILES[:secrets])
+    @@browser = nil
     @@browser_running = false
 
     #Why are you calling new?  Retard....
