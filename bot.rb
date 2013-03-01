@@ -15,6 +15,8 @@ require 'date'
           secrets: File.join(Dir.pwd, "store", "secrets.yml")
         }
 
+log Dir.pwd
+
 @browser_running = false
 @options = YAML.load_file(@file[:secrets])
 @js = File.read(File.join(Dir.pwd, "plug.js"))
