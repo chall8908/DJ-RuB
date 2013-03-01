@@ -18,6 +18,8 @@ module PlugBot
           }
           
   OPTIONS = YAML.load_file(FILES[:secrets])
+  
+  @log_channel = nil
             
   def files
     FILES
@@ -28,6 +30,11 @@ module PlugBot
     OPTIONS
   end
   module_function :options
+  
+  def log_channel=(channel)
+    @log_channel = channel
+  end
+  module_function "log_channel="
   
   def log(entry)
     max_log_size = 5242880 # 5MB
@@ -168,7 +175,7 @@ begin
         end
         
         on :join do |e|
-          @log_channel = @bot.channels.select{ |chan| chan.name == "#radio" }.first if e.channel == "#radio"
+          PlugBot.log_channel = @bot.channels.select{ |chan| chan.name == "#radio" }.first if e.channel == "#radio"
         end
         
         on :connect do |e|
