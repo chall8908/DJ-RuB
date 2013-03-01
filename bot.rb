@@ -141,7 +141,7 @@ def browser_setup
 
   begin
     PlugBot.log "injecting javascript..."
-    @browser.execute_script @js
+    @browser.execute_script PlugBot.js
     @js_loaded = true
     PlugBot.log "setting authorized users..."
     @browser.execute_script "RuB.setAuthorizedUsers(#{PlugBot.options["users"]})"
