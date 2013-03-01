@@ -67,7 +67,10 @@ module PlugBot
 
     @log_channel.msg(entry) unless @log_channel.nil?
     
+    
     File.open(FILES[:log], "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
+  rescue StandardError => e
+    p e  
   end
   module_function :log
 
