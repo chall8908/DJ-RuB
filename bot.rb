@@ -9,7 +9,16 @@ require 'cinch'
 require 'date'
 
 module Logger
-
+  
+  #files and such
+  @file = {
+            log: File.join(Dir.pwd, "store", "bot.log"),
+            song: File.join(Dir.pwd, "store", "song.yml"),
+            secrets: File.join(Dir.pwd, "store", "secrets.yml")
+          }
+          
+  module_function(:files) { @file }
+  
   def log(entry)
     max_log_size = 5242880 # 5MB
 
@@ -132,15 +141,8 @@ def browser_setup
   @browser_running = true
 end
 
-#files and such
-@file = {
-          log: File.join(Dir.pwd, "store", "bot.log"),
-          song: File.join(Dir.pwd, "store", "song.yml"),
-          secrets: File.join(Dir.pwd, "store", "secrets.yml")
-        }
-
 @browser_running = false
-@options = YAML.load_file(@file[:secrets])
+@options = YAML.load_file(Logger.files[:secrets])
 @js = File.read(File.join(Dir.pwd, "plug.js"))
 
 
