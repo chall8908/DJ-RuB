@@ -27,6 +27,7 @@ module Plug
     #
     # @param entry [Object] an object implementing to_s
     def self.log(entry)
+      entry = CGI.unescapeHTML(entry)
       max_log_size = 5242880 # 5MB
 
       File.new(@@log_file, "w") unless File.exists? @@log_file
@@ -48,7 +49,7 @@ module Plug
         end
       end
 
-      @@log_channel.msg(CGI.unescapeHTML(entry)) unless @@log_channel.nil?
+      @@log_channel.msg(entry) unless @@log_channel.nil?
 
       File.open(@@log_file, "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
     end
