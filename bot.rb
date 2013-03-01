@@ -14,7 +14,10 @@ def log(entry)
 
   unless File.size(@file[:log]) < max_log_size
     File.rename @file[:log], @file[:log]+".#{Time.now}"
-
+    
+    log_file_name = @file[:log].split("/").last
+    log_file_path = @file[:log].split("/")
+    
     # Remove old logfiles
     log_files = Dir.entries(Dir.pwd)
                 .select { |v| v.match(/bot\.log\./) }
@@ -29,9 +32,8 @@ def log(entry)
     end
   end
 
-  @log_channel = @bot.channels.select { |chan| chan.name == "#radio" } if(@log_channel.nil? && !@bot.nil?)
   @log_channel.msg(entry) unless @log_channel.nil?
-
+  
   File.open(@file[:log], "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
 end
 
@@ -127,7 +129,7 @@ end
 
 #files and such
 @file = {
-          log: File.join(Dir.pwd, "store", "bot.log"),
+          log: File.join(Dir.pwd, "store", "bot.output"),
           song: File.join(Dir.pwd, "store", "song.yml"),
           secrets: File.join(Dir.pwd, "store", "secrets.yml")
         }
@@ -142,9 +144,7 @@ begin
     log "daemon started"
     Headless.ly do
       @bot = Cinch::Bot.new do
-        configure do |conf|
-          log "configuring bot"
-          
+        configure do |conf|          
           conf.nick = "DJ-RuB"
           conf.server = "irc.teamavolition.com"
           conf.channels = ["#!", "#radio"]
@@ -154,9 +154,14 @@ begin
           log m
         end
         
+        on :join do |e|
+          @log_channel = @bot.channels.select{ |chan| chan.name == "#radio" }.first if e.channel == "#radio"
+        end
+        
         on :connect do
           log "connected to IRC.."
           log "initiating browser loop"
+          
           loop do
             browser_setup unless @browser_running
             begin
