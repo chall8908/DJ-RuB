@@ -358,7 +358,6 @@ window.RuB = new (function() {
   }
 
   API.addEventListener(API.CHAT, function(data) {
-    consoleLog.push(JSON.stringify(data));
     switch(data.type) {
       case "message":
         if(data.message.match(options.commandChar)) {
@@ -407,7 +406,7 @@ window.RuB = new (function() {
         }
         break;
     }
-
+    consoleLog.push(JSON.stringify(data));
     chatLog.push(data.message);
   });
 
