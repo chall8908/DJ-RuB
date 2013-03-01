@@ -84,6 +84,8 @@ module Logger
   log FILES
 end
 
+log Logger.files
+
 @browser_running = false
 @options = YAML.load_file(Logger.files[:secrets])
 @js = File.read(File.join(Dir.pwd, "plug.js"))
