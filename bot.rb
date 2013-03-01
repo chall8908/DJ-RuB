@@ -11,21 +11,24 @@ require 'date'
 module Logger
   
   #files and such
-  @file = {
+  FILES = {
             log: File.join(Dir.pwd, "store", "bot.log"),
             song: File.join(Dir.pwd, "store", "song.yml"),
             secrets: File.join(Dir.pwd, "store", "secrets.yml")
           }
-          
-  define_method(:files) { @file }
+            
+  def files
+    FILES
+  end
+  module_function :files
   
   def log(entry)
     max_log_size = 5242880 # 5MB
 
-    File.new(@file[:log], "w") unless File.exists? @file[:log]
+    File.new(FILES[:log], "w") unless File.exists? FILES[:log]
 
-    unless File.size(@file[:log]) < max_log_size
-      File.rename @file[:log], @file[:log]+".#{Time.now}"
+    unless File.size(FILES[:log]) < max_log_size
+      File.rename FILES[:log], FILES[:log]+".#{Time.now}"
       
       # Remove old logfiles
       log_files = Dir.entries(Dir.pwd)
@@ -43,14 +46,14 @@ module Logger
 
     @log_channel.msg(entry) unless @log_channel.nil?
     
-    File.open(@file[:log], "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
+    File.open(FILES[:log], "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
   end
   module_function :log
 
   def save_song_info(song)
     @current_song = song unless @current_song
     begin
-      File.open(@file[:song], "w+") { |f| f.write(song.to_yaml) }
+      File.open(FILES[:song], "w+") { |f| f.write(song.to_yaml) }
     rescue Exception => e
       retry if fix_dir?
       log "unable to save current song."
@@ -68,7 +71,7 @@ module Logger
       log "updating authorized users list"
       @options["users"] = users
       begin
-        File.open(@file[:secrets], "w+") { |f| f.write(@options.to_yaml) }
+        File.open(FILES[:secrets], "w+") { |f| f.write(@options.to_yaml) }
       rescue Exception => e
       retry if fix_dir?
         log "unable to save authorized users."
@@ -135,7 +138,7 @@ def browser_setup
   end
 
   Logger.log "loading last playing song"
-  @current_song = YAML.load_file(@file[:song])
+  @current_song = YAML.load_file(FILES[:song])
 
   Logger.log "setup complete!"
   @browser_running = true
