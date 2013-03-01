@@ -17,7 +17,7 @@ module Logger
             secrets: File.join(Dir.pwd, "store", "secrets.yml")
           }
           
-  define_function(:files) { @file }
+  define_method(:files) { @file }
   
   def log(entry)
     max_log_size = 5242880 # 5MB
