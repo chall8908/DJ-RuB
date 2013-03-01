@@ -7,6 +7,7 @@ require 'watir-webdriver'
 require 'headless'
 require 'cinch'
 require 'date'
+
 def log(entry)
   max_log_size = 5242880 # 5MB
 
@@ -159,6 +160,7 @@ begin
             browser_setup unless @browser_running
             begin
               Watir::Wait.while(1) do
+                p "RAWR!!!!!!!"
                 still_alive = false
                 begin
                   still_alive = @browser.window.exists?
