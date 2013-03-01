@@ -154,7 +154,9 @@ begin
     Logger.log "daemon started"
     Headless.ly do
       @bot = Cinch::Bot.new do
-        configure do |conf|          
+        configure do |conf|
+          Logger.log "configuring IRC bot"     
+          
           conf.nick = "DJ-RuB"
           conf.server = "irc.teamavolition.com"
           conf.channels = ["#!", "#radio"]
