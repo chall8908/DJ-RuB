@@ -5,6 +5,7 @@ require 'daemons'
 require 'yaml'
 require 'watir-webdriver'
 require 'headless'
+require 'cinch'
 require 'date'
 
 #files and such
@@ -40,7 +41,9 @@ def log(entry)
     end
   end
 
-  @log_channel.msg(entry)
+  @log_channel = @bot.channels.select { |chan| chan.name == "#radio" } if(@log_channel.nil? && !@bot.nil?)
+  @log_channel.msg(entry) unless @log_channel.nil?
+
   File.open(@file[:log], "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
 end
 
@@ -95,7 +98,6 @@ def irc_setup
   end
 
   @bot.start
-  @log_channel = @bot.channels.select { |chan| chan.name == "#radio" }
 end
 
 def browser_setup
@@ -150,6 +152,7 @@ end
 begin
   Daemons.run_proc("bot", dir_mode: :script, dir: "store", log_dir: "store", backtrace: true, log_output: true, monitor: true) do
     Headless.ly do
+      irc_setup
       loop do
         browser_setup unless @browser_running
         begin
