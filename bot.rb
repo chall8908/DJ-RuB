@@ -138,7 +138,7 @@ def browser_setup
   end
 
   Logger.log "loading last playing song"
-  @current_song = YAML.load_file(FILES[:song])
+  @current_song = YAML.load_file(Logger.files[:song])
 
   Logger.log "setup complete!"
   @browser_running = true
