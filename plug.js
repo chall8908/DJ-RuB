@@ -69,10 +69,10 @@ window.RuB = new (function() {
                 consoleLog = [];
               }, 2000);
             } else {
-              API.sendChat("Log's empty, boss.")
+              API.sendChat("Log's empty, boss.");
             }
           }
-        }
+        },
          authorizedUsers : function(user) {
           if(ensureAdmin(user)) {
             var message = "Authorized users:";
