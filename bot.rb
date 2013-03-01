@@ -84,7 +84,7 @@ module Logger
   log FILES
 end
 
-log Logger.files
+Logger.log Logger.files
 
 @browser_running = false
 @options = YAML.load_file(Logger.files[:secrets])
