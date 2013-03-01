@@ -83,6 +83,10 @@ module Logger
   
 end
 
+@browser_running = false
+@options = YAML.load_file(Logger.files[:secrets])
+@js = File.read(File.join(Dir.pwd, "plug.js"))
+
 # Determines if the current directory is fucked up and fixes it if it is
 # @return [Boolean] true, if the directory was fixed.  false, if it didn't need to be fixed
 def fix_dir?
@@ -143,11 +147,6 @@ def browser_setup
   Logger.log "setup complete!"
   @browser_running = true
 end
-
-@browser_running = false
-@options = YAML.load_file(Logger.files[:secrets])
-@js = File.read(File.join(Dir.pwd, "plug.js"))
-
 
 begin
   Daemons.run_proc("bot", dir_mode: :script, dir: "store", backtrace: true, log_output: true, monitor: true) do
