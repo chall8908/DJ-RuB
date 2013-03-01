@@ -8,7 +8,7 @@ require 'headless'
 require 'cinch'
 require 'date'
 
-module Logger
+module PlugBot
   
   #files and such
   FILES = {
@@ -16,11 +16,18 @@ module Logger
             song: File.join(Dir.pwd, "store", "song.yml"),
             secrets: File.join(Dir.pwd, "store", "secrets.yml")
           }
+          
+  OPTIONS = YAML.load_file(FILES[:secrets])
             
   def files
     FILES
   end
   module_function :files
+  
+  def options
+    OPTIONS
+  end
+  module_function :options
   
   def log(entry)
     max_log_size = 5242880 # 5MB
@@ -67,11 +74,11 @@ module Logger
   module_function :save_song_info
 
   def save_authorized_users users
-    if @options["users"].sort != users.sort
+    if OPTIONS["users"].sort != users.sort
       log "updating authorized users list"
-      @options["users"] = users
+      OPTIONS["users"] = users
       begin
-        File.open(FILES[:secrets], "w+") { |f| f.write(@options.to_yaml) }
+        File.open(FILES[:secrets], "w+") { |f| f.write(OPTIONS.to_yaml) }
       rescue Exception => e
       retry if fix_dir?
         log "unable to save authorized users."
@@ -81,20 +88,16 @@ module Logger
   end
   module_function :save_authorized_users
   
-  log FILES
 end
 
-Logger.log Logger.files
-
 @browser_running = false
-@options = YAML.load_file(Logger.files[:secrets])
 @js = File.read(File.join(Dir.pwd, "plug.js"))
 
 # Determines if the current directory is fucked up and fixes it if it is
 # @return [Boolean] true, if the directory was fixed.  false, if it didn't need to be fixed
 def fix_dir?
   if Dir.pwd.match(/(unreachable)/)
-    Logger.log "directory unreachable.  attempting to correct from #{Dir.pwd}."
+    PlugBot.log "directory unreachable.  attempting to correct from #{Dir.pwd}."
     Dir.chdir Dir.pwd.gsub(/\(unreachable\)/, "").gsub(/\/\//, "/")
     true
   else
@@ -103,7 +106,7 @@ def fix_dir?
 end
 
 def browser_setup
-  Logger.log "setting up..."
+  PlugBot.log "setting up..."
   room = 'http://plug.dj/fractionradio/'
 
   @browser = Watir::Browser.new :firefox, profile: 'default' unless @browser && @browser.exists?
@@ -111,26 +114,26 @@ def browser_setup
   @browser.goto room
   google_button = @browser.div(id: "google")
   if google_button.exists?
-    Logger.log "logging in..."
+    PlugBot.log "logging in..."
     google_button.click
-    @browser.text_field(id: "Email").set @options["email"]
-    @browser.text_field(id: "Passwd").set @options["pass"]
+    @browser.text_field(id: "Email").set PlugBot.options["email"]
+    @browser.text_field(id: "Passwd").set PlugBot.options["pass"]
     @browser.button(id: "signIn").click
     @browser.wait
     @browser.goto room
   end
 
-  Logger.log "loading room..."
+  PlugBot.log "loading room..."
   @browser.wait #waits until the DOMready event
 
   begin
-    Logger.log "injecting javascript..."
+    PlugBot.log "injecting javascript..."
     @browser.execute_script @js
     @js_loaded = true
-    Logger.log "setting authorized users..."
-    @browser.execute_script "RuB.setAuthorizedUsers(#{@options["users"]})"
+    PlugBot.log "setting authorized users..."
+    @browser.execute_script "RuB.setAuthorizedUsers(#{PlugBot.options["users"]})"
   rescue Selenium::WebDriver::Error::JavascriptError => e
-    Logger.log e
+    PlugBot.log e
     @js_loaded = false
     if e.message.match("API is not defined")
       if @browser.url != room
@@ -144,20 +147,20 @@ def browser_setup
     end
   end
 
-  Logger.log "loading last playing song"
-  @current_song = YAML.load_file(Logger.files[:song])
+  PlugBot.log "loading last playing song"
+  @current_song = YAML.load_file(PlugBot.files[:song])
 
-  Logger.log "setup complete!"
+  PlugBot.log "setup complete!"
   @browser_running = true
 end
 
 begin
   Daemons.run_proc("bot", dir_mode: :script, dir: "store", backtrace: true, log_output: true, monitor: true) do
-    Logger.log "daemon started"
+    PlugBot.log "daemon started"
     Headless.ly do
       @bot = Cinch::Bot.new do
         configure do |conf|
-          Logger.log "configuring IRC bot"     
+          PlugBot.log "configuring IRC bot"     
           
           conf.nick = "DJ-RuB"
           conf.server = "irc.teamavolition.com"
@@ -169,8 +172,8 @@ begin
         end
         
         on :connect do |e|
-          Logger.log "connected to IRC"
-          Logger.log "initiating browser loop"
+          PlugBot.log "connected to IRC"
+          PlugBot.log "initiating browser loop"
           
           loop do
             browser_setup unless @browser_running
@@ -181,28 +184,28 @@ begin
                   still_alive = @browser.window.exists?
                   # check for session end alert
                   if still_alive && (alert = @browser.alert) && alert.exists?
-                    Logger.log "#{alert.text}"
+                    PlugBot.log "#{alert.text}"
                     alert.ok
                     still_alive = false
                   end
 
                 #this seems kinda hacky, but it works
                 rescue StandardError => e
-                  Logger.log e
+                  PlugBot.log e
                   still_alive = false
                 end
 
                 still_alive
               end
-              Logger.log "browser is dead.  restarting..."
+              PlugBot.log "browser is dead.  restarting..."
               #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
               @browser_running = false
 
             rescue Watir::Wait::TimeoutError
               if @js_loaded
                 @browser.execute_script "RuB.heartbeat();"
-                Logger.save_song_info @browser.execute_script "return RuB.nowPlaying();"
-                Logger.save_authorized_users @browser.execute_script "return RuB.getAuthorizedUsers();"
+                PlugBot.save_song_info @browser.execute_script "return RuB.nowPlaying();"
+                PlugBot.save_authorized_users @browser.execute_script "return RuB.getAuthorizedUsers();"
                 @browser_running = !@browser.execute_script("return RuB.restartRequested();")
               end
             end
@@ -210,11 +213,11 @@ begin
         end
       end
       
-      Logger.log "connecting to IRC"
+      PlugBot.log "connecting to IRC"
       @bot.start
     end
   end
 rescue Exception => e
-  Logger.log e
+  PlugBot.log e
   @browser.close if @browser && @browser.exists?
 end
