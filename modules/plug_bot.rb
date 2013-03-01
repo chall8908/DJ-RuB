@@ -126,7 +126,7 @@ module Plug
       end
       if @current_song && @current_song["id"] != song["id"]
         @current_song = song
-        Logger.log "now playing: #{@current_song["title"]} by #{@current_song["author"]}"
+        Logger.log "#{song["dj"]} is now playing: #{song["title"]} by #{song["author"]}"
       end
     end
 
