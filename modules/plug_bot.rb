@@ -22,10 +22,10 @@ module Plug
     def self.log(entry)
       max_log_size = 5242880 # 5MB
 
-      File.new(FILES[:log], "w") unless File.exists? FILES[:log]
+      File.new(@@log_file, "w") unless File.exists? @@log_file
 
-      unless File.size(FILES[:log]) < max_log_size
-        File.rename FILES[:log], FILES[:log]+".#{Time.now}"
+      unless File.size(@@log_file) < max_log_size
+        File.rename @@log_file, @@log_file+".#{Time.now}"
 
         # Remove old logfiles
         log_files = Dir.entries(Dir.pwd)
@@ -43,7 +43,7 @@ module Plug
 
       @@log_channel.msg(entry) unless @@log_channel.nil?
 
-      File.open(FILES[:log], "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
+      File.open(@@log_file, "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
     end
   end
 
