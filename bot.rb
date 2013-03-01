@@ -41,9 +41,10 @@ begin
         end
 
         on :message, /(.+)/ do |e, message|
+          p e
           if e.user.nick != @bot.nick #ignore messages from the bot
             if message.match /^DJ-RuB/
-
+            else
             end
           end
         end
