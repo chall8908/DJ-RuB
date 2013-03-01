@@ -16,6 +16,8 @@ module PlugBot
             song: File.join(Dir.pwd, "store", "song.yml"),
             secrets: File.join(Dir.pwd, "store", "secrets.yml")
           }
+    
+  JS = File.read(File.join(Dir.pwd, "plug.js"))
           
   OPTIONS = YAML.load_file(FILES[:secrets])
   
@@ -35,6 +37,11 @@ module PlugBot
     @log_channel = channel
   end
   module_function "log_channel="
+  
+  def js
+    JS
+  end
+  module_function :js
   
   def log(entry)
     max_log_size = 5242880 # 5MB
@@ -98,7 +105,6 @@ module PlugBot
 end
 
 @browser_running = false
-@js = File.read(File.join(Dir.pwd, "plug.js"))
 
 # Determines if the current directory is fucked up and fixes it if it is
 # @return [Boolean] true, if the directory was fixed.  false, if it didn't need to be fixed
