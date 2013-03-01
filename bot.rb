@@ -15,9 +15,6 @@ def log(entry)
   unless File.size(@file[:log]) < max_log_size
     File.rename @file[:log], @file[:log]+".#{Time.now}"
     
-    log_file_name = @file[:log].split("/").last
-    log_file_path = @file[:log].split("/")
-    
     # Remove old logfiles
     log_files = Dir.entries(Dir.pwd)
                 .select { |v| v.match(/bot\.log\./) }
@@ -129,7 +126,7 @@ end
 
 #files and such
 @file = {
-          log: File.join(Dir.pwd, "store", "bot.output"),
+          log: File.join(Dir.pwd, "store", "bot.log"),
           song: File.join(Dir.pwd, "store", "song.yml"),
           secrets: File.join(Dir.pwd, "store", "secrets.yml")
         }
@@ -149,10 +146,6 @@ begin
           conf.server = "irc.teamavolition.com"
           conf.channels = ["#!", "#radio"]
         end
-        
-        # on :message do |m|
-        #   log m
-        # end
         
         on :join do |e|
           @log_channel = @bot.channels.select{ |chan| chan.name == "#radio" }.first if e.channel == "#radio"
