@@ -1,0 +1,28 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    childprocess (0.3.8)
+      ffi (~> 1.0, >= 1.0.11)
+    cinch (2.0.4)
+    daemons (1.1.9)
+    ffi (1.4.0)
+    headless (0.3.1)
+    multi_json (1.6.1)
+    rubyzip (0.9.9)
+    selenium-webdriver (2.30.0)
+      childprocess (>= 0.2.5)
+      multi_json (~> 1.0)
+      rubyzip
+      websocket (~> 1.0.4)
+    watir-webdriver (0.6.2)
+      selenium-webdriver (>= 2.18.0)
+    websocket (1.0.7)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  cinch
+  daemons
+  headless
+  watir-webdriver
