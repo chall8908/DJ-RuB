@@ -148,6 +148,8 @@ begin
         end
         
         on :connect do
+          log "connected to IRC.."
+          log "initiating browser loop"
           loop do
             browser_setup unless @browser_running
             begin
