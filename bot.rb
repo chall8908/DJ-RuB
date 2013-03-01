@@ -14,7 +14,7 @@ require 'date'
           secrets: File.join(Dir.pwd, "store", "secrets.yml")
         }
 
-@running = false
+@browser_running = false
 @options = YAML.load_file(@file[:secrets])
 @js = File.read(File.join(Dir.pwd, "plug.js"))
 
@@ -40,6 +40,7 @@ def log(entry)
     end
   end
 
+  @log_channel.msg(entry)
   File.open(@file[:log], "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
 end
 
@@ -84,7 +85,20 @@ def fix_dir?
   end
 end
 
-def setup
+def irc_setup
+  @bot = Cinch::Bot.new do
+    configure do |conf|
+      conf.nick = "DJ-RuB"
+      conf.server = "irc.teamavolition.com"
+      conf.channels = ["#!", "#radio"]
+    end
+  end
+
+  @bot.start
+  @log_channel = @bot.channels.select { |chan| chan.name == "#radio" }
+end
+
+def browser_setup
   log "setting up..."
   room = 'http://plug.dj/fractionradio/'
 
@@ -130,14 +144,14 @@ def setup
   @current_song = YAML.load_file(@file[:song])
 
   log "setup complete!"
-  @running = true
+  @browser_running = true
 end
 
 begin
   Daemons.run_proc("bot", dir_mode: :script, dir: "store", log_dir: "store", backtrace: true, log_output: true, monitor: true) do
     Headless.ly do
       loop do
-        setup unless @running
+        browser_setup unless @browser_running
         begin
           Watir::Wait.while(5) do
             still_alive = false
@@ -160,14 +174,14 @@ begin
           end
           log "browser is dead.  restarting..."
           #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
-          @running = false
+          @browser_running = false
 
         rescue Watir::Wait::TimeoutError
           if @js_loaded
             @browser.execute_script "RuB.heartbeat();"
             save_song_info @browser.execute_script "return RuB.nowPlaying();"
             save_authorized_users @browser.execute_script "return RuB.getAuthorizedUsers();"
-            @running = !@browser.execute_script("return RuB.restartRequested();")
+            @browser_running = !@browser.execute_script("return RuB.restartRequested();")
           end
         end
       end
