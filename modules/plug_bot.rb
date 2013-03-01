@@ -48,7 +48,7 @@ module Plug
         end
       end
 
-      @@log_channel.msg(CGI.decodeHTML(entry)) unless @@log_channel.nil?
+      @@log_channel.msg(CGI.unescapeHTML(entry)) unless @@log_channel.nil?
 
       File.open(@@log_file, "a+") {|f| f.write "#{DateTime.now.strftime "[%m/%d/%Y] %H:%M:%S"} - #{entry}\n"}
     end
