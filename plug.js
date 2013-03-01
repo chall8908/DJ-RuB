@@ -1,16 +1,17 @@
 window.RuB = new (function() {
 
-  var me = API.getSelf(),
-      restartRequested = false,
-      onDeck = isDJing(me),
-      currentDJ = API.getDJs()[0],
-      upVoteButton = $("#button-vote-positive"),
-      downVoteButton = $("#button-vote-negative"),
-      deadAirCounter = 0,
-      errorLog = [],
-      consoleLog = [],
-      authorizedUsers = [],
-      fakeService = { onResult: $.noop, onFailure: $.noop },
+  var me                = API.getSelf(),
+      restartRequested  = false,
+      onDeck            = isDJing(me),
+      currentDJ         = API.getDJs()[0],
+      upVoteButton      = $("#button-vote-positive"),
+      downVoteButton    = $("#button-vote-negative"),
+      deadAirCounter    = 0,
+      errorLog          = [],
+      consoleLog        = [],
+      chatLog           = [],
+      authorizedUsers   = [],
+      fakeService       = { onResult: $.noop, onFailure: $.noop },
       options = {
         commandChar     : /^!/,
         showHeartbeat   : false
@@ -44,16 +45,16 @@ window.RuB = new (function() {
               API.sendChat("It's about to get spammy in here.");
               setTimeout(function() {
                 API.sendChat("Error log:");
-                $.each(errorLog, function(i, error) {
+                $.each(errorLog.splice(0), function(i, error) {
                   API.sendChat(error);
                 });
-                errorLog = [];
               }, 2000);
             } else {
               API.sendChat("No errors reported, boss.");
             }
           }
          },
+         //I should probably combine dumpErrors and showLog.  They're pretty much the same.
          /**
           *
           */
@@ -63,10 +64,9 @@ window.RuB = new (function() {
               API.sendChat("It's about to get spammy in here.");
               setTimeout(function() {
                 API.sendChat("Console log:");
-                $.each(consoleLog, function(i, entry) {
+                $.each(consoleLog.splice(0), function(i, entry) {
                   API.sendChat(entry);
                 });
-                consoleLog = [];
               }, 2000);
             } else {
               API.sendChat("Log's empty, boss.");
@@ -383,9 +383,18 @@ window.RuB = new (function() {
             API.sendChat("Sorry, you're not on the list, @"+data.from+".");
           }
         } else if(data.message.match(/^@DJ-RuB/)) {
-          API.sendChat("@"+data.from+" Please direct all queries to @Vel");
+          API.sendChat("@"+data.from+": Please direct all queries to @Vel");
         }
-        break;
+
+        if(data.fromID != me.id) {
+          data.message = "<"+data.from+"> " + data.message;
+        }
+
+        if(!data.message.match(/\[IRC\]/)){ //ignore messages from IRC
+          chatLog.push(data.message);
+        }
+
+        return;
 
       case "system":
         var message = data.message;
@@ -397,6 +406,8 @@ window.RuB = new (function() {
         }
         break;
     }
+
+    chatLog.push(data.message);
   });
 
   API.addEventListener(API.DJ_ADVANCE, function(data) {
@@ -455,6 +466,10 @@ window.RuB = new (function() {
       API.sendChat("*badum*");
     }
   };
+
+  this.getChatLog = function() {
+    return chatLog.splice(0);
+  }
 
   this.nowPlaying = function() {
     var media = API.getMedia();

@@ -40,7 +40,12 @@ begin
           Plug::Logger.log_channel = @bot.channels.select{ |chan| chan.name == "#radio" }.first if e.channel == "#radio"
         end
 
-        on :message do |m|
+        on :message, /(.+)/ do |e, message|
+          if e.user.nick != @bot.nick #ignore messages from the bot
+            if message.match /^DJ-RuB/
+
+            end
+          end
         end
 
         on :connect do |e|

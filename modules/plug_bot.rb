@@ -100,6 +100,7 @@ module Plug
             @@browser.execute_script "RuB.heartbeat();"
             save_song_info @@browser.execute_script "return RuB.nowPlaying();"
             save_authorized_users @@browser.execute_script "return RuB.getAuthorizedUsers();"
+            log_chat @@browser.execute_script "return RuB.getChatLog();"
             @@browser_running = !@@browser.execute_script("return RuB.restartRequested();")
           end
         end
@@ -112,6 +113,15 @@ module Plug
     end
 
     private
+    # Saves the chat logs
+    #
+    # @param logs [Array<String>] an array of strings constituting the plug chat since the last call
+    def self.log_chat(logs)
+      logs.each do |log|
+        Logger.log log
+      end
+    end
+
     # Saves information on the current song to a file
     #
     # @param song [Hash] a hash of song information (See plug.js)
