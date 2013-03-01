@@ -88,18 +88,6 @@ def fix_dir?
   end
 end
 
-def irc_setup
-  @bot = Cinch::Bot.new do
-    configure do |conf|
-      conf.nick = "DJ-RuB"
-      conf.server = "irc.teamavolition.com"
-      conf.channels = ["#!", "#radio"]
-    end
-  end
-
-  @bot.start
-end
-
 def browser_setup
   log "setting up..."
   room = 'http://plug.dj/fractionradio/'
@@ -152,42 +140,53 @@ end
 begin
   Daemons.run_proc("bot", dir_mode: :script, dir: "store", log_dir: "store", backtrace: true, log_output: true, monitor: true) do
     Headless.ly do
-      irc_setup
-      loop do
-        browser_setup unless @browser_running
-        begin
-          Watir::Wait.while(5) do
-            still_alive = false
+      @bot = Cinch::Bot.new do
+        configure do |conf|
+          conf.nick = "DJ-RuB"
+          conf.server = "irc.teamavolition.com"
+          conf.channels = ["#!", "#radio"]
+        end
+        
+        on :connect do
+          loop do
+            browser_setup unless @browser_running
             begin
-              still_alive = @browser.window.exists?
-              # check for session end alert
-              if still_alive && (alert = @browser.alert) && alert.exists?
-                log "#{alert.text}"
-                alert.ok
+              Watir::Wait.while(5) do
                 still_alive = false
+                begin
+                  still_alive = @browser.window.exists?
+                  # check for session end alert
+                  if still_alive && (alert = @browser.alert) && alert.exists?
+                    log "#{alert.text}"
+                    alert.ok
+                    still_alive = false
+                  end
+
+                #this seems kinda hacky, but it works
+                rescue StandardError => e
+                  log e
+                  still_alive = false
+                end
+
+                still_alive
               end
+              log "browser is dead.  restarting..."
+              #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
+              @browser_running = false
 
-            #this seems kinda hacky, but it works
-            rescue StandardError => e
-              log e
-              still_alive = false
+            rescue Watir::Wait::TimeoutError
+              if @js_loaded
+                @browser.execute_script "RuB.heartbeat();"
+                save_song_info @browser.execute_script "return RuB.nowPlaying();"
+                save_authorized_users @browser.execute_script "return RuB.getAuthorizedUsers();"
+                @browser_running = !@browser.execute_script("return RuB.restartRequested();")
+              end
             end
-
-            still_alive
-          end
-          log "browser is dead.  restarting..."
-          #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
-          @browser_running = false
-
-        rescue Watir::Wait::TimeoutError
-          if @js_loaded
-            @browser.execute_script "RuB.heartbeat();"
-            save_song_info @browser.execute_script "return RuB.nowPlaying();"
-            save_authorized_users @browser.execute_script "return RuB.getAuthorizedUsers();"
-            @browser_running = !@browser.execute_script("return RuB.restartRequested();")
           end
         end
       end
+
+      @bot.start
     end
   end
 rescue Exception => e
