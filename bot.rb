@@ -137,13 +137,14 @@ end
 @js = File.read(File.join(Dir.pwd, "plug.js"))
 
 
-log Dir.pwd
-
 begin
   Daemons.run_proc("bot", dir_mode: :script, dir: "store", log_dir: "store", backtrace: true, log_output: true, monitor: true) do
+    log "daemon started"
     Headless.ly do
       @bot = Cinch::Bot.new do
         configure do |conf|
+          log "configuring bot"
+          
           conf.nick = "DJ-RuB"
           conf.server = "irc.teamavolition.com"
           conf.channels = ["#!", "#radio"]
@@ -193,7 +194,8 @@ begin
           end
         end
       end
-
+      
+      log "connecting to IRC"
       @bot.start
     end
   end
