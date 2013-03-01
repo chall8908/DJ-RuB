@@ -138,7 +138,7 @@ end
 
 
 begin
-  Daemons.run_proc("bot", dir_mode: :script, dir: "store", log_dir: "store", backtrace: true, log_output: true, monitor: true) do
+  Daemons.run_proc("bot", dir_mode: :script, dir: "store", backtrace: true, log_output: true, monitor: true) do
     log "daemon started"
     Headless.ly do
       @bot = Cinch::Bot.new do
