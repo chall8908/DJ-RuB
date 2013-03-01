@@ -40,6 +40,9 @@ begin
           Plug::Logger.log_channel = @bot.channels.select{ |chan| chan.name == "#radio" }.first if e.channel == "#radio"
         end
 
+        on :message do |m|
+        end
+
         on :connect do |e|
           Plug::Logger.log "connected to IRC"
           Plug::Logger.log "initiating browser loop"
