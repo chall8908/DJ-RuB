@@ -8,7 +8,7 @@ require 'headless'
 require 'cinch'
 require 'date'
 
-def log(entry)
+def log_to_file(entry)
   max_log_size = 5242880 # 5MB
 
   File.new(@file[:log], "w") unless File.exists? @file[:log]
@@ -41,25 +41,25 @@ def save_song_info(song)
     File.open(@file[:song], "w+") { |f| f.write(song.to_yaml) }
   rescue Exception => e
     retry if fix_dir?
-    log "unable to save current song."
-    log e
+    log_to_file "unable to save current song."
+    log_to_file e
   end
   if @current_song && @current_song["id"] != song["id"]
     @current_song = song
-    log "now playing: #{@current_song["title"]} by #{@current_song["author"]}"
+    log_to_file "now playing: #{@current_song["title"]} by #{@current_song["author"]}"
   end
 end
 
 def save_authorized_users users
   if @options["users"].sort != users.sort
-    log "updating authorized users list"
+    log_to_file "updating authorized users list"
     @options["users"] = users
     begin
       File.open(@file[:secrets], "w+") { |f| f.write(@options.to_yaml) }
     rescue Exception => e
     retry if fix_dir?
-      log "unable to save authorized users."
-      log e
+      log_to_file "unable to save authorized users."
+      log_to_file e
     end
   end
 end
@@ -68,7 +68,7 @@ end
 # @return [Boolean] true, if the directory was fixed.  false, if it didn't need to be fixed
 def fix_dir?
   if Dir.pwd.match(/(unreachable)/)
-    log "directory unreachable.  attempting to correct from #{Dir.pwd}."
+    log_to_file "directory unreachable.  attempting to correct from #{Dir.pwd}."
     Dir.chdir Dir.pwd.gsub(/\(unreachable\)/, "").gsub(/\/\//, "/")
     true
   else
@@ -77,7 +77,7 @@ def fix_dir?
 end
 
 def browser_setup
-  log "setting up..."
+  log_to_file "setting up..."
   room = 'http://plug.dj/fractionradio/'
 
   @browser = Watir::Browser.new :firefox, profile: 'default' unless @browser && @browser.exists?
@@ -85,7 +85,7 @@ def browser_setup
   @browser.goto room
   google_button = @browser.div(id: "google")
   if google_button.exists?
-    log "logging in..."
+    log_to_file "logging in..."
     google_button.click
     @browser.text_field(id: "Email").set @options["email"]
     @browser.text_field(id: "Passwd").set @options["pass"]
@@ -94,17 +94,17 @@ def browser_setup
     @browser.goto room
   end
 
-  log "loading room..."
+  log_to_file "loading room..."
   @browser.wait #waits until the DOMready event
 
   begin
-    log "injecting javascript..."
+    log_to_file "injecting javascript..."
     @browser.execute_script @js
     @js_loaded = true
-    log "setting authorized users..."
+    log_to_file "setting authorized users..."
     @browser.execute_script "RuB.setAuthorizedUsers(#{@options["users"]})"
   rescue Selenium::WebDriver::Error::JavascriptError => e
-    log e
+    log_to_file e
     @js_loaded = false
     if e.message.match("API is not defined")
       if @browser.url != room
@@ -118,10 +118,10 @@ def browser_setup
     end
   end
 
-  log "loading last playing song"
+  log_to_file "loading last playing song"
   @current_song = YAML.load_file(@file[:song])
 
-  log "setup complete!"
+  log_to_file "setup complete!"
   @browser_running = true
 end
 
@@ -139,7 +139,7 @@ end
 
 begin
   Daemons.run_proc("bot", dir_mode: :script, dir: "store", backtrace: true, log_output: true, monitor: true) do
-    log "daemon started"
+    log_to_file "daemon started"
     Headless.ly do
       @bot = Cinch::Bot.new do
         configure do |conf|          
@@ -152,9 +152,9 @@ begin
           @log_channel = @bot.channels.select{ |chan| chan.name == "#radio" }.first if e.channel == "#radio"
         end
         
-        on :connect do
-          log "connected to IRC.."
-          log "initiating browser loop"
+        on :connect do |e|
+          log_to_file "connected to IRC"
+          log_to_file "initiating browser loop"
           
           loop do
             browser_setup unless @browser_running
@@ -166,20 +166,20 @@ begin
                   still_alive = @browser.window.exists?
                   # check for session end alert
                   if still_alive && (alert = @browser.alert) && alert.exists?
-                    log "#{alert.text}"
+                    log_to_file "#{alert.text}"
                     alert.ok
                     still_alive = false
                   end
 
                 #this seems kinda hacky, but it works
                 rescue StandardError => e
-                  log e
+                  log_to_file e
                   still_alive = false
                 end
 
                 still_alive
               end
-              log "browser is dead.  restarting..."
+              log_to_file "browser is dead.  restarting..."
               #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
               @browser_running = false
 
@@ -195,11 +195,11 @@ begin
         end
       end
       
-      log "connecting to IRC"
+      log_to_file "connecting to IRC"
       @bot.start
     end
   end
 rescue Exception => e
-  log e
+  log_to_file e
   @browser.close if @browser && @browser.exists?
 end
