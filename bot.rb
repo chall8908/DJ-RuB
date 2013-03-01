@@ -81,6 +81,7 @@ module Logger
   end
   module_function :save_authorized_users
   
+  log FILES
 end
 
 @browser_running = false
