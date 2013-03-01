@@ -410,6 +410,14 @@ window.RuB = new (function() {
     chatLog.push(data.message);
   });
 
+  API.addEventListener(API.MOD_SKIP, function(mod) {
+    chatLog.push(mod+" has skipped the current DJ.");
+  });
+
+  API.addEventListener(API.VOTE_SKIP, function() {
+    chatLog.push("The room has voted to skip the current DJ.");
+  });
+
   API.addEventListener(API.DJ_ADVANCE, function(data) {
     currentSongThumbed = null;
     currentDJ = data.dj;
