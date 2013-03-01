@@ -147,13 +147,17 @@ begin
           conf.channels = ["#!", "#radio"]
         end
         
+        on :message do |m|
+          log m
+        end
+        
         on :connect do
           log "connected to IRC.."
           log "initiating browser loop"
           loop do
             browser_setup unless @browser_running
             begin
-              Watir::Wait.while(5) do
+              Watir::Wait.while(1) do
                 still_alive = false
                 begin
                   still_alive = @browser.window.exists?
