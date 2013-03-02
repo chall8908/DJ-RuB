@@ -2,7 +2,6 @@
 
 require 'rubygems'
 require 'daemons'
-require 'cinch'
 require './modules/plug_bot.rb'
 
 # Determines if the current directory is fucked up and fixes it if it is
@@ -22,41 +21,40 @@ end
 begin
   Daemons.run_proc("bot", dir_mode: :script, dir: "store", backtrace: true, log_output: true, monitor: true) do
     Plug::Logger.log "daemon started"
-    Headless.ly do
-      @bot = Cinch::Bot.new do
-        configure do |conf|
-          Plug::Logger.log "configuring IRC bot"
+    @bot = Plug::Bot.new do
+      configure do |conf|
+        Plug::Logger.log "configuring IRC bot"
 
-          conf.nick = "DJ-RuB"
-          conf.server = "irc.teamavolition.com"
-          conf.channels = ["#!", "#radio"]
-        end
+        conf.nick = "DJ-RuB"
+        conf.server = "irc.teamavolition.com"
+        conf.channels = ["#!", "#radio"]
+      end
 
-        on :join do |e|
-          Plug::Logger.log_channel = @bot.channels.select{ |chan| chan.name == "#radio" }.first if e.channel == "#radio"
-        end
+      on :join do |e|
+        Plug::Logger.log_channel = @bot.channels.select{ |chan| chan.name == "#radio" }.first if e.channel == "#radio"
+      end
 
-        on :message do |e|
-          p e
-          if e.user.nick != @bot.nick #ignore messages from the bot
-            # if message.match /^DJ-RuB/
-            # else
-            # end
+      on :message, /(.+)/ do |e, message|
+        if e.user.nick != @bot.nick #ignore messages from the bot
+          if message.match /^DJ-RuB/
+            # perform commands
+          else
+            @bot.post_to_chat("[IRC] <#{e.user.nick}> #{message}")
           end
-        end
-
-        on :connect do |e|
-          Plug::Logger.log "connected to IRC"
-          Plug::Logger.log "initiating browser loop"
-          Plug::Bot.start_browser_loop
         end
       end
 
-      Plug::Logger.log "connecting to IRC"
-      @bot.start
+      on :connect do |e|
+        Plug::Logger.log "connected to IRC"
+        Plug::Logger.log "initiating browser loop"
+        @bot.start_browser_loop
+      end
     end
+
+    Plug::Logger.log "connecting to IRC"
+    @bot.start
   end
 rescue Exception => e
   Plug::Logger.log e
-  Plug::Bot.clean_up
+  Plug::Bot.get_bot.clean_up
 end

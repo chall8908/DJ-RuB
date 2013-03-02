@@ -479,6 +479,11 @@ window.RuB = new (function() {
     return chatLog.splice(0);
   }
 
+  this.chat = function(msg) {
+    API.sendChat(msg);
+    return "";
+  }
+
   this.nowPlaying = function() {
     var media = API.getMedia();
     media.elapsed = Playback.elapsed;
