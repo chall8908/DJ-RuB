@@ -424,7 +424,7 @@ window.RuB = new (function() {
     currentDJ = data.dj;
     deadAirCounter = 0;
     nowPlaying = data.media;
-    nowPlaying.dj = currentDJ;
+    nowPlaying.dj = currentDJ.username;
     if(currentDJ.permission > 0 && currentDJ.id != me.id) {
       //autowoot
       commands.woot(me, true);
