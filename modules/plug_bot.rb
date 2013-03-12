@@ -178,9 +178,9 @@ module Plug
       Logger.log "setting up..."
       room = 'http://plug.dj/fractionradio/'
 
-      p "make browser?"                                                         # Make our browser instance, if we need it
+      Logger.log "make browser?"                                                         # Make our browser instance, if we need it
       @browser = Watir::Browser.new :firefox, profile: 'default' unless @browser && @browser.exists?
-      p "browser made"
+      Logger.log "browser made"
       @browser.goto room                                                        # Try to load the room
       google_button = @browser.div(id: "google")
       if google_button.exists?                                                  # Do we need to log in?
