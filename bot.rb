@@ -17,19 +17,6 @@ def fix_dir?
   end
 end
 
-create_message_proc = Proc.new do
-  bot = @bot
-  return Proc.new { |e, message|
-    if e.user.nick != @bot.nick #ignore messages from the bot
-      if message.match /^DJ-RuB/
-        # perform commands
-      else
-        bot.post_to_chat("[IRC] <#{e.user.nick}> #{message}")
-      end
-    end
-  }
-end
-
 #Let's get this party started
 
 begin
@@ -50,7 +37,15 @@ begin
         @bot.channels.first.msg("I have arrived.")
       end
 
-      on :message, /(.+)/ create_message_proc.call
+      on :message, /(.+)/, @bot { |e, message, bot|
+        if e.user.nick != @bot.nick #ignore messages from the bot
+          if message.match /^DJ-RuB/
+            # perform commands
+          else
+            bot.post_to_chat("[IRC] <#{e.user.nick}> #{message}")
+          end
+        end
+      }
 
       on :connect do |e|
         Plug::Logger.log "connected to IRC"
