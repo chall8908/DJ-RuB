@@ -4,6 +4,7 @@ window.RuB = new (function() {
       restartRequested  = false,
       onDeck            = isDJing(me),
       currentDJ         = API.getDJs()[0],
+      nowPlaying        = false,
       upVoteButton      = $("#button-vote-positive"),
       downVoteButton    = $("#button-vote-negative"),
       deadAirCounter    = 0,
@@ -422,6 +423,8 @@ window.RuB = new (function() {
     currentSongThumbed = null;
     currentDJ = data.dj;
     deadAirCounter = 0;
+    nowPlaying = data.media;
+    nowPlaying.dj = data.dj;
     if(currentDJ.permission > 0 && currentDJ.id != me.id) {
       //autowoot
       commands.woot(me, true);
@@ -485,11 +488,15 @@ window.RuB = new (function() {
   }
 
   this.nowPlaying = function() {
-    var media = API.getMedia();
-    media.elapsed = Playback.elapsed;
-      //this will use the current dj, if it can be gathered at all
-    media.dj = (API.getDJs()[0] || {username: "unknown"}).username;
-    return media;
+    if(!nowPlaying) {
+      nowPlaying = API.getMedia();
+        //this will use the current dj, if it can be gathered at all
+      nowPlaying.dj = (API.getDJs()[0] || {username: "unknown"}).username;
+    }
+
+    nowPlaying.elapsed = Playback.elapsed;
+
+    return nowPlaying;
   };
 
   this.setAuthorizedUsers = function(users) {
