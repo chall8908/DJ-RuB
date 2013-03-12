@@ -20,7 +20,7 @@ end
 def do_message
   bot = @bot
   Proc.new { |e, message|
-    if e.user.nick != @bot.nick #ignore messages from the bot
+    if e && e.user.nick != @bot.nick #ignore messages from the bot
       if message.match /^DJ-RuB/
         # perform commands
       else
