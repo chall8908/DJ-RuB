@@ -26,6 +26,7 @@ begin
         Plug::Logger.log "configuring IRC bot"
 
         conf.nick = "DJ-RuB"
+        conf.realname = "Ruthenium_Boron"
         conf.server = "irc.teamavolition.com"
         conf.channels = ["#radio"]
       end
