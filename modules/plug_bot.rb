@@ -178,39 +178,39 @@ module Plug
       Logger.log "setting up..."
       room = 'http://plug.dj/fractionradio/'
 
-                                                                                # Make our browser instance, if we need it
+      p "make browser?"                                                         # Make our browser instance, if we need it
       @browser = Watir::Browser.new :firefox, profile: 'default' unless @browser && @browser.exists?
-
-      @browser.goto room                                                       # Try to load the room
+      p "browser made"
+      @browser.goto room                                                        # Try to load the room
       google_button = @browser.div(id: "google")
       if google_button.exists?                                                  # Do we need to log in?
         Logger.log "logging in..."                                              # Yup
         google_button.click
-        @browser.text_field(id: "Email").set OPTIONS["email"]                  # provide email
-        @browser.text_field(id: "Passwd").set OPTIONS["pass"]                  # and pass
+        @browser.text_field(id: "Email").set OPTIONS["email"]                   # provide email
+        @browser.text_field(id: "Passwd").set OPTIONS["pass"]                   # and pass
         @browser.button(id: "signIn").click
-        @browser.wait                                                          # Wait for the lobby to load
-        @browser.goto room                                                     # head to our room
+        @browser.wait                                                           # Wait for the lobby to load
+        @browser.goto room                                                      # head to our room
       end
 
       Logger.log "loading room..."
-      @browser.wait                                                            # Wait while the room loads
+      @browser.wait                                                             # Wait while the room loads
 
       begin
         Logger.log "injecting javascript..."
-        @browser.execute_script JS                                             # Inject Javascript
+        @browser.execute_script JS                                              # Inject Javascript
         @js_loaded = true
         Logger.log "setting authorized users..."
-        @browser.execute_script "RuB.setAuthorizedUsers(#{OPTIONS["users"]})"  # Set authorized users
+        @browser.execute_script "RuB.setAuthorizedUsers(#{OPTIONS["users"]})"   # Set authorized users
       rescue Selenium::WebDriver::Error::JavascriptError => e
         Logger.log e                                                            # Something may go wrong (I'm not perfect, after all)
         @js_loaded = false
         if e.message.match("API is not defined")                                # If plug's API is not defined, we should be a little worried
-          if @browser.url != room                                              # Check that we're in the right place
-            @browser.goto room                                                 # If not, let's go there
+          if @browser.url != room                                               # Check that we're in the right place
+            @browser.goto room                                                  # If not, let's go there
             @browser.wait
           else
-            @browser.execute_script "delete window.RuB"                        # If we are, delete the existing instance.  It failed to run anyways
+            @browser.execute_script "delete window.RuB"                         # If we are, delete the existing instance.  It failed to run anyways
           end
 
           retry                                                                 # Try loading the JS again
@@ -221,7 +221,7 @@ module Plug
       @current_song = YAML.load_file(FILES[:song])                              # Load up the song that was playing the last time we were here
 
       Logger.log "setup complete!"
-      @browser_running = true                                                  # ALL DONE!
+      @browser_running = true                                                   # ALL DONE!
     end
 
   end
