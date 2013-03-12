@@ -29,7 +29,7 @@ begin
 
           conf.nick = "DJ-RuB"
           conf.server = "irc.teamavolition.com"
-          conf.channels = ["#!", "#radio"]
+          conf.channels = ["#radio"]
         end
 
         on :join do |e|
