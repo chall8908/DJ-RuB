@@ -75,8 +75,7 @@ module Plug
     end
 
     def post_to_chat(msg)
-      p msg
-      @browser.execute_script "RuB.chat(\"#{msg}\");" if @js_loaded
+      @browser.execute_script "RuB.chat('#{msg}');" if @js_loaded
     rescue StandardError => e
       p e
       p e.backtrace
