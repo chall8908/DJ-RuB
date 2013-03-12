@@ -28,7 +28,7 @@ module Plug
     # @raise BrowserRunningError if the browser is already running
     def start_browser_loop
       raise BrowserRunningError.new if @browser_running
-      # Headless.ly do
+      Headless.ly do
         loop do
           browser_setup unless @browser_running
           begin
@@ -65,7 +65,7 @@ module Plug
             end
           end
         end
-      # end
+      end
     end
 
     # Closes the browser gracefully
@@ -133,9 +133,9 @@ module Plug
       Logger.log "setting up..."
       room = 'http://plug.dj/fractionradio/'
 
-      Logger.log "make browser?"                                                         # Make our browser instance, if we need it
+                                                                                # Make our browser instance, if we need it
       @browser = Watir::Browser.new :firefox, profile: 'default' unless @browser && @browser.exists?
-      Logger.log "browser made"
+
       @browser.goto room                                                        # Try to load the room
       google_button = @browser.div(id: "google")
       if google_button.exists?                                                  # Do we need to log in?
