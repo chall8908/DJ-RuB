@@ -1,4 +1,4 @@
-var RuB = new (function() {
+window.RuB = new (function() {
 
   var me                = API.getSelf(),
       restartRequested  = false,
