@@ -3,6 +3,7 @@
 require 'rubygems'
 require 'daemons'
 require './modules/plug_bot.rb'
+require './modules/plug_logger.rb'
 
 # Determines if the current directory is fucked up and fixes it if it is
 # @return [Boolean] true, if the directory was fixed.  false, if it didn't need to be fixed
@@ -58,5 +59,5 @@ begin
   end
 rescue Exception => e
   Plug::Logger.log e
-  Plug::Bot.get_bot.clean_up
+  @bot.clean_up
 end
