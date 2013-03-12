@@ -177,6 +177,7 @@ module Plug
 
       Logger.log "setup complete!"
       @browser_running = true                                                   # ALL DONE!
+      bot.post_to_chat "DJ-RuB is in the HOUSE!"
     end
 
   end

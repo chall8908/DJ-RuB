@@ -1,4 +1,4 @@
-window.RuB = new (function() {
+var RuB = new (function() {
 
   var me                = API.getSelf(),
       restartRequested  = false,
@@ -452,6 +452,10 @@ window.RuB = new (function() {
       onDeck = isDJing(me);
     }
 
+    if(!songPlaying) {
+      songPlaying = RuB.nowPlaying();
+    }
+
     if(user.username.match(/^User-/)) {
       API.sendChat("Hello, @"+user.username+".  You might want to change your name.  Default names are uncool.");
     } else if(user.id != me.id) {
@@ -484,7 +488,6 @@ window.RuB = new (function() {
 
   this.chat = function(msg) {
     API.sendChat(msg);
-    return "";
   }
 
   this.nowPlaying = function() {
@@ -513,12 +516,5 @@ window.RuB = new (function() {
 
   this.restartRequested = function() {
     return restartRequested;
-  }
-
-  //Last minute setup
-  songPlaying = this.nowPlaying();
-  if(!me) {
-    me = API.getSelf();
-    onDeck = isDJing(me);
   }
 })();
