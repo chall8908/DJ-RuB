@@ -37,7 +37,7 @@ begin
         @bot.channels.first.msg("I have arrived.")
       end
 
-      on :message, /(.+)/, @bot { |e, message, bot|
+      on :message, /(.+)/, @bot do |e, bot, message|
         if e.user.nick != @bot.nick #ignore messages from the bot
           if message.match /^DJ-RuB/
             # perform commands
@@ -45,7 +45,7 @@ begin
             bot.post_to_chat("[IRC] <#{e.user.nick}> #{message}")
           end
         end
-      }
+      end
 
       on :connect do |e|
         Plug::Logger.log "connected to IRC"
