@@ -96,6 +96,7 @@ module Plug
     #
     # @param song [Hash] a hash of song information (See plug.js)
     def save_song_info(song)
+      return unless song
       @current_song = song unless @current_song
       begin
         File.open(FILES[:song], "w+") { |f| f.write(song.to_yaml) }
