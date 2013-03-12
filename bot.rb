@@ -40,7 +40,7 @@ begin
           if message.match /^DJ-RuB/
             # perform commands
           else
-            @bot.post_to_chat("[IRC] <#{e.user.nick}> #{message}")
+            #@bot.post_to_chat("[IRC] <#{e.user.nick}> #{message}")
           end
         end
       end
