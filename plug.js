@@ -490,13 +490,16 @@ window.RuB = new (function() {
   this.nowPlaying = function() {
     if(!songPlaying) {
       songPlaying = API.getMedia();
+
+      if(!songPlaying) {
+        return false;
+      }
         //this will use the current dj, if it can be gathered at all
       songPlaying.dj = (API.getDJs()[0] || {username: "unknown"}).username;
     }
 
-    if(songPlaying) {
-      songPlaying.elapsed = Playback.elapsed;
-    }
+    songPlaying.elapsed = Playback.elapsed;
+
     return songPlaying;
   };
 
