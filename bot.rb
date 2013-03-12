@@ -20,7 +20,7 @@ end
 def do_message
   bot = @bot
   Proc.new { |e, message|
-    if e && e.user.nick != @bot.nick #ignore messages from the bot
+    if e.user.nick != @bot.nick #ignore messages from the bot
       if message.match /^DJ-RuB/
         # perform commands
       else
@@ -50,7 +50,7 @@ begin
         @bot.channels.first.msg("I have arrived.")
       end
 
-      on :message, /(.+)/, do_message.call
+      on :message, /(.+)/, do_message
 
       on :connect do |e|
         Plug::Logger.log "connected to IRC"
