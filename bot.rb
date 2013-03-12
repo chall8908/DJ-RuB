@@ -33,6 +33,7 @@ begin
 
       on :join do |e|
         Plug::Logger.log_channel = @bot.channels.select{ |chan| chan.name == "#radio" }.first if e.channel == "#radio"
+        @bot.channels.first.msg("I have arrived.")
       end
 
       on :message, /(.+)/ do |e, message|
