@@ -17,9 +17,9 @@ def fix_dir?
   end
 end
 
-def create_message_proc
+create_message_proc = Proc.new do
   bot = @bot
-  Proc.new { |e, message|
+  return Proc.new { |e, message|
     if e.user.nick != @bot.nick #ignore messages from the bot
       if message.match /^DJ-RuB/
         # perform commands
@@ -50,7 +50,7 @@ begin
         @bot.channels.first.msg("I have arrived.")
       end
 
-      on :message, /(.+)/, create_message_proc
+      on :message, /(.+)/ create_message_proc.call
 
       on :connect do |e|
         Plug::Logger.log "connected to IRC"
