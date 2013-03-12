@@ -494,8 +494,9 @@ window.RuB = new (function() {
       nowPlaying.dj = (API.getDJs()[0] || {username: "unknown"}).username;
     }
 
-    nowPlaying.elapsed = Playback.elapsed;
-
+    if(nowPlaying) {
+      nowPlaying.elapsed = Playback.elapsed;
+    }
     return nowPlaying;
   };
 

@@ -38,6 +38,9 @@ begin
       end
 
       on :message, /(.+)/, @bot do |e, bot, message|
+        Plug::Logger.log e
+        Plug::Logger.log bot
+        Plug::Logger.log message
         if e.user.nick != @bot.nick #ignore messages from the bot
           if message.match /^DJ-RuB/
             # perform commands
