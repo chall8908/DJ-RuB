@@ -21,6 +21,7 @@ module Plug
     OPTIONS = YAML.load_file(FILES[:secrets])
     @browser = nil
     @browser_running = false
+    @js_loaded = false
 
     # Start the browser loop.
     # Calls browser_setup to setup the browser instance
@@ -45,7 +46,7 @@ module Plug
 
               #this seems kinda hacky, but it works
               rescue StandardError => e
-                Logger.log "[plub_bot.rb:96] #{e}"
+                Logger.log "[plug_bot.rb:96] #{e}"
                 still_alive = false
               end
 
@@ -130,6 +131,8 @@ module Plug
 
     # Sets up a browser instance and gets us to plug.dj
     def browser_setup
+      @js_loaded = false
+      @browser_running = false
       Logger.log "setting up..."
       room = 'http://plug.dj/fractionradio/'
 
