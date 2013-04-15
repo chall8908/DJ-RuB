@@ -8,9 +8,11 @@ module Plug
   end
 
   class Bot < Cinch::Bot
+    require 'date'
     require 'yaml'
     require 'watir-webdriver'
     require 'headless'
+    require 'active_support/core_ext'
 
     #files and such
     FILES = {
@@ -32,39 +34,72 @@ module Plug
       Headless.ly do
         loop do
           browser_setup unless @browser_running
-          begin
-            Watir::Wait.while(1) do
-              still_alive = false
-              begin
-                still_alive = @browser.window.exists?
-                # check for session end alert
-                if still_alive && (alert = @browser.alert) && alert.exists?
-                  Logger.log "#{alert.text}"
-                  alert.ok
-                  still_alive = false
-                end
 
-              #this seems kinda hacky, but it works
-              rescue StandardError => e
-                Logger.log "[plug_bot.rb:96] #{e}"
-                still_alive = false
+          lps = 0 # loops per second
+          last_heartbeat = 1.second.ago
+
+          while @browser_running
+            begin
+              @browser_running = @browser.window.exists?
+
+              if @browser_running && (alert = @browser.alert) && alert.exists?
+                Logger.log alert.text
+                alert.ok
+                @browser_running = false
               end
-
-              still_alive
+            rescue StandardError => e
+              Logger.log "error in internal browser loop"
+              Logger.log e
+              @browser_running = false
             end
-            Logger.log "browser is dead.  restarting..."
-            #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
-            @browser_running = false
 
-          rescue Watir::Wait::TimeoutError
-            if @js_loaded
-              @browser.execute_script("RuB.heartbeat();")
-              save_song_info @browser.execute_script("return RuB.nowPlaying();")
-              save_authorized_users @browser.execute_script("return RuB.getAuthorizedUsers();")
-              log_chat @browser.execute_script("return RuB.getChatLog();")
-              @browser_running = !@browser.execute_script("return RuB.restartRequested();")
-            end
+            lps += 1
+            if last_heartbeat >= 1.second.ago
+              last_heartbeat = DateTime.now
+              if @js_loaded
+                @browser.execute_script("RuB.heartbeat(#{lps});")
+                save_song_info @browser.execute_script("return RuB.nowPlaying();")
+                save_authorized_users @browser.execute_script("return RuB.getAuthorizedUsers();")
+                log_chat @browser.execute_script("return RuB.getChatLog();")
+                @browser_running = !@browser.execute_script("return RuB.restartRequested();")
+              end
+              lps = 0
           end
+
+          Logger.log "browser is dead.  restarting..."
+          # begin
+          #   Watir::Wait.while(1) do
+          #     still_alive = false
+          #     begin
+          #       still_alive = @browser.window.exists?
+          #       # check for session end alert
+          #       if still_alive && (alert = @browser.alert) && alert.exists?
+          #         Logger.log "#{alert.text}"
+          #         alert.ok
+          #         still_alive = false
+          #       end
+
+          #     #this seems kinda hacky, but it works
+          #     rescue StandardError => e
+          #       Logger.log "[plug_bot.rb:96] #{e}"
+          #       still_alive = false
+          #     end
+
+          #     still_alive
+          #   end
+          #   Logger.log "browser is dead.  restarting..."
+          #   #execution only reaches past here if the browser closes.  Otherwise, a TimeoutError is thrown and caught below
+          #   @browser_running = false
+
+          # rescue Watir::Wait::TimeoutError
+          #   if @js_loaded
+          #     @browser.execute_script("RuB.heartbeat();")
+          #     save_song_info @browser.execute_script("return RuB.nowPlaying();")
+          #     save_authorized_users @browser.execute_script("return RuB.getAuthorizedUsers();")
+          #     log_chat @browser.execute_script("return RuB.getChatLog();")
+          #     @browser_running = !@browser.execute_script("return RuB.restartRequested();")
+          #   end
+          # end
         end
       end
     end
@@ -180,7 +215,7 @@ module Plug
 
       Logger.log "setup complete!"
       @browser_running = true                                                   # ALL DONE!
-      bot.post_to_chat "DJ-RuB is in the HOUSE!"
+      #bot.post_to_chat "DJ-RuB is in the HOUSE!"
     end
 
   end
