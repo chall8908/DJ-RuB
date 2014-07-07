@@ -12,6 +12,7 @@ module Plug
     require 'yaml'
     require 'watir-webdriver'
     require 'headless'
+    require 'active_support'
     require 'active_support/core_ext'
 
     #files and such
@@ -64,7 +65,7 @@ module Plug
                 @browser_running = !@browser.execute_script("return RuB.restartRequested();")
               end
               lps = 0
-          end
+            end
 
           Logger.log "browser is dead.  restarting..."
           # begin
@@ -100,7 +101,7 @@ module Plug
           #     @browser_running = !@browser.execute_script("return RuB.restartRequested();")
           #   end
           # end
-        end
+          end
       end
     end
 
@@ -218,5 +219,6 @@ module Plug
       #bot.post_to_chat "DJ-RuB is in the HOUSE!"
     end
 
+    end
   end
 end
